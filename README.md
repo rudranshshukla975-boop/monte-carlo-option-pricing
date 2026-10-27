@@ -6,8 +6,6 @@
 
 An educational, clean, and modular implementation of **Monte Carlo simulation for European options pricing** in Python and NumPy. This project validates Monte Carlo pricing against the closed-form **Black-Scholes (1973)** benchmark, verifies the theoretical $\mathcal{O}(1/\sqrt{N})$ convergence rate, and explores variance reduction via **antithetic variates**.
 
-The complete technical and theoretical write-up is available in [`docs/Project1_Report.pdf`](docs/Project1_Report.pdf).
-
 ---
 
 ## Table of Contents
@@ -135,9 +133,6 @@ monte-carlo-option-pricing/
 │   ├── fig_prng_boxmuller.png     # Uniform (LCG) vs Normal (Box-Muller) histograms
 │   ├── fig_randomwalk_brownian.png# Discrete random walk to continuous Brownian motion
 │   └── fig_clt.png                # Central Limit Theorem demonstration
-│
-├── docs/
-│   └── Project1_Report.pdf        # Complete academic report
 │
 ├── run_experiments.py             # Reproduces all tables, results.json, and figures
 ├── mc_option_pricing.py           # Root convenience runner

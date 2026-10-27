@@ -11,9 +11,10 @@ __pycache__/
 .vscode/
 .idea/
 
-# Word documents and root docx/pdf duplicates (final report is in docs/Project1_Report.pdf)
+# College reports, Word documents, and PDFs
 *.docx
-/Project1_Report.pdf
+*.pdf
+docs/
 report/
 
 # OS specific files
