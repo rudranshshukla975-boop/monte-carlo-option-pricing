@@ -1,0 +1,21 @@
+# Python environments & caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# IDE configurations
+.vscode/
+.idea/
+
+# Word documents and root docx/pdf duplicates (final report is in docs/Project1_Report.pdf)
+*.docx
+/Project1_Report.pdf
+report/
+
+# OS specific files
+Thumbs.db
+.DS_Store
