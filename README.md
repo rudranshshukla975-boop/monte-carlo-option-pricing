@@ -67,11 +67,15 @@ An interactive browser-based simulation interface is hosted directly via GitHub 
 **[Launch Live Web Simulator](https://rudranshshukla975-boop.github.io/monte-carlo-option-pricing/)**
 
 Capabilities:
-- Dynamic controls for Spot Price ($S_0$), Strike Price ($K$), Volatility ($\sigma$), Risk-Free Rate ($r$), and Expiry ($T$).
-- Real-time HTML5 canvas rendering of discrete price trajectories.
-- Instant toggle between Plain Monte Carlo and Antithetic Variates.
-- Empirical distribution histograms for terminal stock prices and hockey-stick payoffs.
-- Structured summary metrics, Put-Call parity gap checks, and JSON export.
+- **Brownian futures, live.** Paths draw themselves one at a time, then build up into a long-exposure cloud. Each path is colored by whether it ends in the money, and the $\pm1\sigma$, $\pm2\sigma$ lognormal envelopes and $\mathbb{E}[S_t]=S_0e^{rt}$ are overlaid as theory.
+- **Where futures land.** The empirical terminal histogram fills in against the exact lognormal density.
+- **Payoff × chance.** $f(S)\,p(S)$ is drawn directly, and its area is the undiscounted option price.
+- **Law of large numbers.** The running estimate (plain vs. antithetic, at equal cost) converges into the $1.96\,\sigma/\sqrt{N}$ funnel around the Black–Scholes value.
+- **Live derivation.** Box–Muller, Itô's exact GBM solution, the payoff and the discounted average are typeset (KaTeX) with the actual numbers of the newest path.
+- **Tactile controls.** Drag the strike line on the chart, hover the cloud to read $P(S_t > S)$, and move the sliders to reshape the *same* random draws (common random numbers).
+- **Diagnostics.** Empirical exercise probability vs. $N(d_2)$, Delta, put–call parity gap, and antithetic variance-reduction efficiency.
+
+The simulator is dependency-free vanilla JS (`docs/index.html`, `docs/style.css`, `docs/app.js`) with a seeded PRNG, so every run is reproducible.
 
 ---
 

@@ -1,1046 +1,606 @@
-<!-- Same interactive simulator web app saved in workspace for easy local launch or web deployment -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monte Carlo European Option Pricing — Interactive Simulator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --border-color: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --success: #10b981;
-      --purple: #8b5cf6;
-      --amber: #f59e0b;
-    }
-    html.light {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border-color: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --success: #059669;
-      --purple: #7c3aed;
-      --amber: #d97706;
-    }
-    body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 1rem;
-    }
-    input[type="range"] {
-      accent-color: var(--accent);
-    }
-    canvas {
-      border-radius: 0.75rem;
-    }
-  </style>
+  <title>One Price, A Million Futures — Monte Carlo Option Pricing</title>
+  <meta name="description" content="A slow-burning, interactive journey through stochastic calculus: watch Brownian futures converge, unpack one equation at a time on a sticky stage, and hedge risk on a live trading desk.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen p-4 md:p-8 transition-colors duration-200">
+<body>
 
-  <!-- Header Section -->
-  <header class="max-w-7xl mx-auto mb-8">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-color)]">
-      <div>
-        <div class="flex items-center gap-2 mb-2 flex-wrap">
-          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            B.Tech Project 1 — MITS Gwalior
-          </span>
-          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Department of Mathematics &amp; Computing
-          </span>
-        </div>
-        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
-          Monte Carlo European Option Pricing Simulator
-        </h1>
-        <p class="text-sm text-[var(--text-muted)] mt-1">
-          Vectorized Stochastic Simulation, Antithetic Variates &amp; Black-Scholes Analytical Verification
-        </p>
-      </div>
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-bar"><span id="scrollBarFill"></span></div>
 
-      <!-- Authors Badge, GitHub Star & Theme Toggle -->
-      <div class="flex items-center gap-3">
-        <div class="text-right text-xs hidden sm:block">
-          <p class="font-bold text-[var(--text-main)]">Rudransh Shukla</p>
-          <p class="text-[var(--text-muted)] text-[11px]">with Vaibhav Sharma</p>
-        </div>
-        <a href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl card hover:border-blue-500 transition-all text-xs font-semibold flex items-center gap-1.5 text-[var(--text-main)] shadow-sm" title="View Source on GitHub">
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          <span>GitHub</span>
-        </a>
-        <button id="themeToggle" class="px-2.5 py-1.5 rounded-xl card hover:border-blue-500 transition-all text-xs font-semibold" title="Toggle Light/Dark Theme">
-          Theme
-        </button>
-      </div>
+  <!-- ─────────────── Sticky Top Bar & Module Switcher ─────────────── -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">MC/<em>&#x3C3;</em></span>
+      <span class="crumb">Monte Carlo &middot; Black&ndash;Scholes</span>
+    </div>
+
+    <nav class="mod-tabs" role="tablist" aria-label="Workspace Modules">
+      <button class="m-tab on" data-mod="sim" role="tab" aria-selected="true">
+        <span class="m-idx">01</span>
+        <span class="m-lbl">Live Simulator</span>
+      </button>
+      <button class="m-tab" data-mod="math" role="tab" aria-selected="false">
+        <span class="m-idx">02</span>
+        <span class="m-lbl">Slow-Burn Math Journey</span>
+      </button>
+      <button class="m-tab" data-mod="desk" role="tab" aria-selected="false">
+        <span class="m-idx">03</span>
+        <span class="m-lbl">Trading Desk &amp; Risk</span>
+      </button>
+    </nav>
+
+    <div class="top-meta">
+      <span class="live-pill" id="topContract">CALL &middot; S₀ 100 &middot; K 110 &middot; σ 25%</span>
+      <a class="src-link" href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing" target="_blank" rel="noopener">GitHub &#x2197;</a>
     </div>
   </header>
 
-  <!-- Main Grid Layout -->
-  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODULE 01 — LIVE SIMULATOR (Focused, breathing, one step at a time)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="mod-view on" id="mod-sim" role="tabpanel">
 
-    <!-- Left Column: Controls (4 cols) -->
-    <section class="lg:col-span-4 space-y-6">
-      <div class="card p-6 shadow-sm space-y-5">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-bold text-[var(--text-main)]">
-            Market Parameters
-          </h2>
-          <button id="resetDefaultsBtn" class="text-xs text-blue-400 hover:text-blue-300 underline">
-            Reset
+    <section class="hero reveal">
+      <div>
+        <p class="kicker">Module 01 &middot; Stochastic Pricing Engine</p>
+        <h1>One price,<br><em>a million futures.</em></h1>
+      </div>
+      <div class="hero-right">
+        <p class="lede">
+          An option's fair value is the average payoff across every future the market could take.
+          Black and Scholes solved that average with a closed-form equation. Monte Carlo
+          <em>lives through</em> the futures instead, one random path at a time, and lets the
+          law of large numbers do the rest.
+        </p>
+        <div class="journey-strip" aria-label="Guided Path">
+          <button class="j-step on" data-goto="sim">
+            <span class="j-num">01</span>
+            <div><strong>Watch &amp; Perturb</strong><small>Live cloud &amp; single-path inspector</small></div>
+          </button>
+          <span class="j-arr">&rarr;</span>
+          <button class="j-step" data-goto="math">
+            <span class="j-num">02</span>
+            <div><strong>Unpack the Math</strong><small>Scroll-driven 4-chapter story</small></div>
+          </button>
+          <span class="j-arr">&rarr;</span>
+          <button class="j-step" data-goto="desk">
+            <span class="j-num">03</span>
+            <div><strong>Apply on the Desk</strong><small>Scenarios, Greeks &amp; hedging</small></div>
           </button>
         </div>
+      </div>
+    </section>
 
-        <!-- Initial Stock Price S0 -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between text-xs">
-            <label for="inputS0" class="font-semibold text-[var(--text-muted)]">Spot Price (\(S_0\))</label>
-            <span id="labelS0" class="font-mono font-bold text-blue-400">$100.00</span>
+    <main class="instrument">
+
+      <!-- Core Instrument Stage -->
+      <div class="instrument-frame reveal">
+        <div class="readout">
+          <div class="ro big">
+            <label>Monte Carlo estimate</label>
+            <output id="roMc">&mdash;</output>
+            <small id="roCi">&plusmn; &mdash; (95%)</small>
           </div>
-          <input type="range" id="inputS0" min="20" max="250" step="1" value="100" class="w-full">
-        </div>
-
-        <!-- Strike Price K -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between text-xs">
-            <label for="inputK" class="font-semibold text-[var(--text-muted)]">Strike Price (\(K\))</label>
-            <span id="labelK" class="font-mono font-bold text-blue-400">$100.00</span>
+          <div class="ro big">
+            <label>Black&ndash;Scholes, exact</label>
+            <output id="roBs" class="ink">&mdash;</output>
+            <small id="roType">European call</small>
           </div>
-          <input type="range" id="inputK" min="20" max="250" step="1" value="100" class="w-full">
-        </div>
-
-        <!-- Risk-free Rate r -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between text-xs">
-            <label for="inputR" class="font-semibold text-[var(--text-muted)]">Risk-Free Rate (\(r\))</label>
-            <span id="labelR" class="font-mono font-bold text-blue-400">5.0%</span>
+          <div class="ro">
+            <label>Error in standard errors</label>
+            <output id="roZ">&mdash;</output>
+            <div class="zbar"><span class="band"></span><i id="roZdot"></i></div>
           </div>
-          <input type="range" id="inputR" min="0" max="20" step="0.5" value="5" class="w-full">
-        </div>
-
-        <!-- Volatility sigma -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between text-xs">
-            <label for="inputSigma" class="font-semibold text-[var(--text-muted)]">Volatility (\(\sigma\))</label>
-            <span id="labelSigma" class="font-mono font-bold text-blue-400">20.0%</span>
-          </div>
-          <input type="range" id="inputSigma" min="5" max="80" step="1" value="20" class="w-full">
-        </div>
-
-        <!-- Time to Expiry T -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between text-xs">
-            <label for="inputT" class="font-semibold text-[var(--text-muted)]">Time to Expiry (\(T\) in yrs)</label>
-            <span id="labelT" class="font-mono font-bold text-blue-400">1.00 yr</span>
-          </div>
-          <input type="range" id="inputT" min="0.1" max="5.0" step="0.05" value="1.0" class="w-full">
-        </div>
-
-        <hr class="border-[var(--border-color)]">
-
-        <h3 class="text-sm font-bold text-[var(--text-main)]">
-          Simulation Engine
-        </h3>
-
-        <!-- Number of paths N -->
-        <div class="space-y-2">
-          <div class="flex justify-between text-xs">
-            <span class="font-semibold text-[var(--text-muted)]">Sample Paths (\(N\))</span>
-            <span id="labelN" class="font-mono font-bold text-purple-400">50,000 paths</span>
-          </div>
-          <div class="grid grid-cols-4 gap-1.5">
-            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500" data-n="5000">5k</button>
-            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500" data-n="20000">20k</button>
-            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-blue-500 bg-blue-500/20 text-blue-400" data-n="50000">50k</button>
-            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500" data-n="100000">100k</button>
+          <div class="ro">
+            <label>Futures simulated</label>
+            <output id="roN">0</output>
+            <small id="roRate">&mdash;</small>
           </div>
         </div>
 
-        <!-- Variance Reduction Toggle -->
-        <div class="flex items-center justify-between p-3 rounded-xl bg-[var(--bg)] border border-[var(--border-color)]">
+        <figure class="stage">
+          <canvas id="main" aria-label="Simulated price paths, terminal distribution and payoff"></canvas>
+          <figcaption class="hint" id="hint">drag the <b>strike line</b> &middot; hover the cloud for probabilities</figcaption>
+        </figure>
+
+        <figure class="stage conv">
+          <canvas id="conv" aria-label="Convergence of the Monte Carlo estimate"></canvas>
+        </figure>
+
+        <!-- Console -->
+        <div class="console">
+          <div class="knobs">
+            <div class="knob"><label for="kS0"><i>S</i><sub>0</sub> <span>spot</span></label><input id="kS0" type="range" min="40" max="200" step="1" value="100"><output id="vS0"></output></div>
+            <div class="knob"><label for="kK"><i>K</i> <span>strike</span></label><input id="kK" type="range" min="40" max="200" step="1" value="110"><output id="vK"></output></div>
+            <div class="knob"><label for="kSig"><i>&#x3C3;</i> <span>volatility</span></label><input id="kSig" type="range" min="0.05" max="0.8" step="0.01" value="0.25"><output id="vSig"></output></div>
+            <div class="knob"><label for="kR"><i>r</i> <span>risk-free rate</span></label><input id="kR" type="range" min="0.0" max="0.15" step="0.0025" value="0.05"><output id="vR"></output></div>
+            <div class="knob"><label for="kT"><i>T</i> <span>years to expiry</span></label><input id="kT" type="range" min="0.1" max="3" step="0.05" value="1"><output id="vT"></output></div>
+          </div>
+          <div class="switches">
+            <div class="seg" role="radiogroup" aria-label="Option type">
+              <button data-type="call" class="on">Call</button><button data-type="put">Put</button>
+            </div>
+            <label class="toggle"><input type="checkbox" id="kAnti" checked><span></span>Antithetic &plusmn;Z</label>
+            <button id="bPlay" class="btn">Pause</button>
+            <button id="bReseed" class="btn">New universe</button>
+            <span class="seed" id="seedLbl"></span>
+          </div>
+          <p class="note">Every slider reshapes the <em>same</em> random draws (common random numbers), so you see how
+            &#x3C3;, <i>r</i> and <i>T</i> bend one fixed universe of chance instead of a fresh one.</p>
+        </div>
+      </div>
+
+      <!-- Focused Single-Equation Spotlight (One Step at a Time, Never 4 at Once) -->
+      <section class="spotlight reveal" aria-label="Step-by-step anatomy of the newest path">
+        <div class="spotlight-head">
           <div>
-            <span class="text-xs font-bold block text-[var(--text-main)]">Antithetic Variates</span>
-            <span class="text-[11px] text-[var(--text-muted)]">Variance Reduction \(\pm Z\)</span>
+            <span class="kicker">Slow-Burn Path Inspector &middot; One Equation at a Time</span>
+            <h3>Follow a single future from random coin-flip to option price</h3>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="toggleAntithetic" class="sr-only peer" checked>
-            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-          </label>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="pt-2 flex flex-col gap-2">
-          <button id="runSimBtn" class="w-full py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center justify-center">
-            Run Simulation
-          </button>
-          <div class="grid grid-cols-2 gap-2">
-            <button id="exportJsonBtn" class="py-2 text-xs font-semibold rounded-xl border border-[var(--border-color)] hover:bg-slate-800 transition-all text-[var(--text-muted)] hover:text-white">
-              Export JSON
-            </button>
-            <button id="copySummaryBtn" class="py-2 text-xs font-semibold rounded-xl border border-[var(--border-color)] hover:bg-slate-800 transition-all text-[var(--text-muted)] hover:text-white">
-              Copy Summary
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Benchmark Summary Card -->
-      <div class="card p-5 space-y-3 text-xs">
-        <h4 class="font-bold text-[var(--text-main)] uppercase tracking-wider text-[11px]">
-          Parity &amp; Convergence Check
-        </h4>
-        <div class="space-y-2">
-          <div class="flex justify-between">
-            <span class="text-[var(--text-muted)]">Parity Gap (\(C - P - [S_0 - Ke^{-rT}]\)):</span>
-            <span id="metricParityGap" class="font-mono font-bold text-emerald-400">0.0000</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-[var(--text-muted)]">BS Parity Target:</span>
-            <span id="metricBsParity" class="font-mono text-[var(--text-main)]">4.8771</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-[var(--text-muted)]">Call Inside 95% CI:</span>
-            <span id="metricCallInCi" class="font-bold text-emerald-400">YES (Verified)</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-[var(--text-muted)]">Put Inside 95% CI:</span>
-            <span id="metricPutInCi" class="font-bold text-emerald-400">YES (Verified)</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-[var(--text-muted)]">Simulated Time:</span>
-            <span id="metricTime" class="font-mono text-purple-400">12 ms</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Right Column: Results & Interactive Visualizations (8 cols) -->
-    <section class="lg:col-span-8 space-y-6">
-
-      <!-- Pricing KPI Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <!-- Call Option Card -->
-        <div class="card p-5 border-l-4 border-l-blue-500 space-y-3 shadow-sm">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-blue-400">European Call Option</span>
-            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              Payoff: \(\max(S_T - K, 0)\)
-            </span>
-          </div>
-          <div class="flex items-baseline gap-3">
-            <span id="cardCallPrice" class="text-3xl font-extrabold font-mono text-[var(--text-main)]">10.450</span>
-            <span class="text-xs text-[var(--text-muted)]">USD</span>
-          </div>
-          <div class="text-xs space-y-1 pt-1 border-t border-[var(--border-color)]">
-            <div class="flex justify-between">
-              <span class="text-[var(--text-muted)]">Black-Scholes Exact:</span>
-              <span id="cardBsCall" class="font-mono font-bold text-blue-300">10.4506</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--text-muted)]">95% Confidence Interval:</span>
-              <span id="cardCallCi" class="font-mono text-[var(--text-muted)]">[10.321, 10.579]</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--text-muted)]">Standard Error (\(SE\)):</span>
-              <span id="cardCallSe" class="font-mono text-purple-400">0.0658</span>
-            </div>
+          <div class="spot-stepper" role="tablist">
+            <button class="sp-btn on" data-sp="0"><span class="num">I</span> Chance</button>
+            <span class="sp-line"></span>
+            <button class="sp-btn" data-sp="1"><span class="num">II</span> Drift &amp; Itô</button>
+            <span class="sp-line"></span>
+            <button class="sp-btn" data-sp="2"><span class="num">III</span> Payoff</button>
+            <span class="sp-line"></span>
+            <button class="sp-btn" data-sp="3"><span class="num">IV</span> Expectation</button>
           </div>
         </div>
 
-        <!-- Put Option Card -->
-        <div class="card p-5 border-l-4 border-l-purple-500 space-y-3 shadow-sm">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-400">European Put Option</span>
-            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
-              Payoff: \(\max(K - S_T, 0)\)
-            </span>
-          </div>
-          <div class="flex items-baseline gap-3">
-            <span id="cardPutPrice" class="text-3xl font-extrabold font-mono text-[var(--text-main)]">5.573</span>
-            <span class="text-xs text-[var(--text-muted)]">USD</span>
-          </div>
-          <div class="text-xs space-y-1 pt-1 border-t border-[var(--border-color)]">
-            <div class="flex justify-between">
-              <span class="text-[var(--text-muted)]">Black-Scholes Exact:</span>
-              <span id="cardBsPut" class="font-mono font-bold text-purple-300">5.5735</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--text-muted)]">95% Confidence Interval:</span>
-              <span id="cardPutCi" class="font-mono text-[var(--text-muted)]">[5.485, 5.661]</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--text-muted)]">Standard Error (\(SE\)):</span>
-              <span id="cardPutSe" class="font-mono text-purple-400">0.0449</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Interactive Canvas Charts Container -->
-      <div class="card p-6 shadow-sm space-y-4">
-        <!-- Chart Tab Selectors -->
-        <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-[var(--border-color)]">
-          <div class="flex gap-2">
-            <button id="tabGbm" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white">
-              Geometric Brownian Motion Paths
-            </button>
-            <button id="tabDist" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white">
-              Terminal Price Distribution (\(S_T\))
-            </button>
-            <button id="tabPayoff" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white">
-              Payoff Diagram
-            </button>
-          </div>
-          <span class="text-[11px] text-[var(--text-muted)] font-mono" id="chartStatusText">
-            Rendering 25 Sample Trajectories
-          </span>
-        </div>
-
-        <!-- Canvas Element -->
-        <div class="relative w-full aspect-[16/9] max-h-[380px] bg-slate-950/60 rounded-xl overflow-hidden border border-[var(--border-color)]">
-          <canvas id="mainCanvas" class="w-full h-full block"></canvas>
-        </div>
-
-        <!-- Chart Legend / Details -->
-        <div id="chartLegend" class="flex flex-wrap items-center justify-center gap-4 text-xs text-[var(--text-muted)] pt-1">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-
-      <!-- Mathematical Formulation & Vectorization Explainer -->
-      <div class="card p-6 shadow-sm space-y-4 text-xs">
-        <h3 class="text-sm font-bold text-[var(--text-main)]">
-          Mathematical Principles &amp; Computational Vectorization
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-3.5 rounded-xl bg-[var(--bg)] border border-[var(--border-color)] space-y-2">
-            <h4 class="font-bold text-blue-400">1. Exact GBM Solution (Itô's Lemma)</h4>
-            <p class="text-[var(--text-muted)] leading-relaxed">
-              Under risk-neutral probability \(\mathbb{Q}\), stock price follows:
+        <div class="spotlight-body">
+          <div class="sp-narrative">
+            <span class="c-badge" id="spStageTag">Stage I of IV &middot; Gaussian Shock</span>
+            <h4 id="spTitle">Box&ndash;Muller turns two flat uniforms into a bell-curve shock</h4>
+            <p id="spDesc">
+              Each glowing trajectory begins with uniform random numbers in (0, 1) transformed into 64 standard normal steps. Their sum gives the terminal shock Z for that path.
             </p>
-            <code class="block font-mono bg-slate-900/90 text-blue-300 p-2 rounded-lg text-[11px]">
-              S(T) = S_0 * exp((r - 0.5*σ²)*T + σ*sqrt(T)*Z)
-            </code>
-            <p class="text-[var(--text-muted)]">
-              Where \(Z \sim \mathcal{N}(0, 1)\) is generated via the Box-Muller transform.
+            <div class="sp-actions">
+              <button class="btn" id="spNextBtn">Next Stage: II. Drift &amp; Itô &rarr;</button>
+              <button class="btn ember-btn" id="spDeepBtn">Unpack this equation in Module 02 &rarr;</button>
+            </div>
+          </div>
+          <div class="sp-equation-box">
+            <label id="spEqLabel">Live evaluation for the newest trajectory</label>
+            <div class="sp-eq" id="spEq"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Clean Diagnostics Strip -->
+      <section class="diag reveal">
+        <div><label>P(exercise), empirical</label><output id="dItm">&mdash;</output><small id="dItmTh">theory &mdash;</small></div>
+        <div><label>Delta &Delta;</label><output id="dDelta">&mdash;</output><small id="dDeltaTxt">shares to hedge one option</small></div>
+        <div><label>Put&ndash;call parity gap</label><output id="dParity">&mdash;</output><small><span class="tex">C-P-(S_0-Ke^{-rT})</span></small></div>
+        <div><label>Antithetic efficiency</label><output id="dEff">&mdash;</output><small>variance cut at equal cost</small></div>
+      </section>
+
+      <!-- Next Module Callout Footer -->
+      <div class="next-module-bar reveal">
+        <div>
+          <span class="kicker">Next Step &middot; Module 02</span>
+          <h3>Unpack the mathematics <em>one chapter at a time.</em></h3>
+          <p>Scroll through a guided 4-chapter visual story where the animated laboratory stays pinned on the left and morphs as each theorem unfolds at your pace.</p>
+        </div>
+        <button class="btn ember-btn big-cta" data-goto="math">Enter Module 02: Slow-Burn Math Journey &rarr;</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODULE 02 — SLOW-BURN SCROLL-DRIVEN MATHEMATICAL JOURNEY
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="mod-view" id="mod-math" role="tabpanel">
+    <main class="instrument">
+
+      <section class="mod-hero reveal">
+        <div>
+          <p class="kicker">Module 02 &middot; Scroll-Driven Mathematical Journey</p>
+          <h2>Four theorems,<br><em>unpacked at your pace.</em></h2>
+        </div>
+        <p class="concepts-lede">
+          Scroll down slowly. As each chapter enters view, the interactive laboratory on the left morphs into that theorem's live geometry&mdash;and shows only <strong>one equation at a time</strong> so you can play with its variables and see how it works in code and in markets.
+        </p>
+      </section>
+
+      <!-- Scrollytelling Layout: Sticky Left Animated Stage + Right Slow-Burning Chapters -->
+      <div class="scrolly-layout">
+
+        <!-- Sticky Left Stage -->
+        <aside class="scrolly-sticky">
+          <div class="sticky-stage-card">
+            <div class="sticky-head">
+              <div class="sticky-pills" role="tablist" aria-label="Chapter jump">
+                <button class="st-pill on" data-jump="0">I. Chance</button>
+                <button class="st-pill" data-jump="1">II. Itô's Drift</button>
+                <button class="st-pill" data-jump="2">III. Payoff</button>
+                <button class="st-pill" data-jump="3">IV. Antithetic</button>
+              </div>
+              <span class="live-anim-tag"><i></i> Live Canvas</span>
+            </div>
+
+            <div class="c-canvas-wrap">
+              <canvas id="mathStageCanvas" aria-label="Animated mathematical foundation canvas"></canvas>
+            </div>
+
+            <!-- Context-sensitive controls: only the active chapter's controls are shown -->
+            <div class="st-ctrl-group on" data-ctrl="0">
+              <div class="knob">
+                <label for="bmU1"><i>U</i><sub>1</sub> <span>radius uniform</span></label>
+                <input id="bmU1" type="range" min="0.005" max="0.995" step="0.005" value="0.280">
+                <output id="bmU1Val">0.280</output>
+              </div>
+              <div class="knob">
+                <label for="bmU2"><i>U</i><sub>2</sub> <span>angle uniform</span></label>
+                <input id="bmU2" type="range" min="0.005" max="0.995" step="0.005" value="0.160">
+                <output id="bmU2Val">0.160</output>
+              </div>
+              <button id="bmRoll" class="btn">Roll (U₁, U₂)</button>
+              <button id="bmSend" class="btn ember-btn">Launch in Simulator &uarr;</button>
+            </div>
+
+            <div class="st-ctrl-group" data-ctrl="1">
+              <div class="knob">
+                <label for="itoZ"><i>Z</i> <span>shock at expiry</span></label>
+                <input id="itoZ" type="range" min="-3.0" max="3.0" step="0.05" value="0.00">
+                <output id="itoZVal">+0.00&#x3C3;</output>
+              </div>
+              <div class="knob">
+                <label for="itoSig"><i>&#x3C3;</i> <span>volatility</span></label>
+                <input id="itoSig" type="range" min="0.05" max="0.80" step="0.01" value="0.25">
+                <output id="itoSigVal">25%</output>
+              </div>
+              <label class="toggle"><input type="checkbox" id="itoShowNaive" checked><span></span>Show naive path (no &minus;&frac12;&#x3C3;&sup2;)</label>
+            </div>
+
+            <div class="st-ctrl-group" data-ctrl="2">
+              <div class="knob">
+                <label for="bsK"><i>K</i> <span>strike price</span></label>
+                <input id="bsK" type="range" min="40" max="200" step="1" value="110">
+                <output id="bsKVal">110</output>
+              </div>
+              <div class="knob">
+                <label for="bsProbe"><i>S</i><sub>T</sub> <span>inspect terminal price</span></label>
+                <input id="bsProbe" type="range" min="40" max="220" step="1" value="130">
+                <output id="bsProbeVal">130</output>
+              </div>
+              <div class="seg" role="radiogroup" aria-label="Option type">
+                <button data-bstype="call" class="on">Call</button><button data-bstype="put">Put</button>
+              </div>
+            </div>
+
+            <div class="st-ctrl-group" data-ctrl="3">
+              <div class="knob">
+                <label for="avZ"><i>+Z</i> <span>primary shock</span></label>
+                <input id="avZ" type="range" min="-2.6" max="2.6" step="0.05" value="1.15">
+                <output id="avZVal">+1.15&#x3C3;</output>
+              </div>
+              <button id="avSample" class="btn">Draw random pair (&plusmn;Z)</button>
+              <button id="avToggleMain" class="btn ember-btn">Toggle in Simulator &uarr;</button>
+            </div>
+
+            <!-- Single Focused Live Equation Box -->
+            <div class="c-live-eq" id="mathLiveEq"></div>
+          </div>
+        </aside>
+
+        <!-- Right Column: 4 Slow-Burning Scroll Chapters -->
+        <div class="scrolly-chapters">
+
+          <!-- CHAPTER I -->
+          <article class="math-chapter active" data-chap="0">
+            <header class="chap-head">
+              <span class="chap-num">Chapter I &middot; Manufacturing Chance</span>
+              <h3>From flat uniform bits to the Gaussian bell curve</h3>
+            </header>
+            <p class="chap-lead">
+              A digital computer is deterministic. Its pseudo-random number generator (like the Linear Congruential Generator in <a href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing/blob/main/mc_option_pricing/prng.py" target="_blank" rel="noopener"><code>prng.py</code></a>) only produces flat, uniform numbers between 0 and 1. How do we turn flat coin-flips into the bell-shaped shocks of a financial market?
+            </p>
+            <div class="chap-block">
+              <span class="c-badge">1. The Mathematical Transform</span>
+              <p>
+                George Box and Mervin Muller (1958) solved this geometrically. Take two independent uniform draws <span class="tex">U_1, U_2 \in (0,1)</span>. Use <span class="tex">U_2</span> to spin a compass needle to angle <span class="tex">\theta = 2\pi U_2</span>, and use <span class="tex">U_1</span> to stretch the radius by <span class="tex">R = \sqrt{-2\ln U_1}</span>. The Cartesian shadow <span class="tex">Z_1 = R\cos\theta</span> is an exact standard normal draw <span class="tex">\mathcal{N}(0,1)</span>.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">2. Try It on the Canvas (&larr;)</span>
+              <p>
+                Drag the <strong><span class="tex">U_1</span> slider</strong> toward <code>0.005</code> while watching the rotating vector on the left. Because <span class="tex">-\ln(U_1)</span> explodes as <span class="tex">U_1 \to 0</span>, the radius shoots outward and drops your shock into the extreme <span class="tex">3\sigma</span> tail of the bell curve.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">3. How Trading Desks Use This</span>
+              <p>
+                Black Monday and the 2008 crash live in that tiny corner where <span class="tex">U_1 \to 0</span>. Because pure random sampling can miss rare corners in small samples, quantitative desks often feed Quasi-Monte Carlo <em>Sobol sequences</em> into the Box&ndash;Muller transform so the unit square is covered evenly without gaps.
+              </p>
+            </div>
+          </article>
+
+          <!-- CHAPTER II -->
+          <article class="math-chapter" data-chap="1">
+            <header class="chap-head">
+              <span class="chap-num">Chapter II &middot; Itô's Lemma &amp; Volatility Drag</span>
+              <h3>Why Brownian jaggedness pulls the median below the mean</h3>
+            </header>
+            <p class="chap-lead">
+              Once we have a Gaussian shock <span class="tex">Z</span>, how does it move the stock price? Stock prices compound multiplicatively so they never go negative: <span class="tex">dS_t = r S_t\,dt + \sigma S_t\,dW_t</span>. Solving that differential equation reveals the most famous surprise in stochastic calculus.
+            </p>
+            <div class="chap-block">
+              <span class="c-badge">1. Why Ordinary Calculus Fails</span>
+              <p>
+                In freshman calculus, small squared changes <span class="tex">(dt)^2</span> vanish. But a Brownian path <span class="tex">W_t</span> scales with <span class="tex">\sqrt{t}</span>, meaning its squared step is <span class="tex">(dW_t)^2 = dt</span>. When we apply a Taylor expansion to <span class="tex">\ln S_t</span>, <strong>Itô's Lemma</strong> forces us to keep the second derivative term <span class="tex">-\tfrac{1}{2}\sigma^2 dt</span>.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">2. Try It on the Canvas (&larr;)</span>
+              <p>
+                Keep <span class="tex">Z = 0</span> and drag <strong>volatility <span class="tex">\sigma</span></strong> up to <code>60%</code>. Watch the solid ember curve (Itô's exact median path) sink far below the white mean curve <span class="tex">S_0 e^{rT}</span>. Intuitively: a +50% gain followed by a &minus;50% loss leaves $100 at $75, not $100. Volatility taxes compounding.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">3. In the Engine &amp; Real Markets</span>
+              <p>
+                Because Itô's solution is exact over any horizon <span class="tex">T</span>, <a href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing/blob/main/mc_option_pricing/gbm.py" target="_blank" rel="noopener"><code>gbm.py</code></a> jumps directly from <span class="tex">t=0</span> to expiry in one step with zero discretization bias. In real markets, this <span class="tex">-\tfrac{1}{2}\sigma^2</span> term explains why 3&times; leveraged ETFs bleed value in volatile, sideways markets.
+              </p>
+            </div>
+          </article>
+
+          <!-- CHAPTER III -->
+          <article class="math-chapter" data-chap="2">
+            <header class="chap-head">
+              <span class="chap-num">Chapter III &middot; Risk-Neutral Valuation</span>
+              <h3>Where the hockey-stick payoff meets the lognormal cloud</h3>
+            </header>
+            <p class="chap-lead">
+              A European call option gives you the right, but not the obligation, to buy the stock at strike <span class="tex">K</span> at expiry <span class="tex">T</span>. Its terminal payoff is the hockey stick <span class="tex">f(S_T) = \max(S_T - K, 0)</span>. How do we price that uncertain future payout today?
+            </p>
+            <div class="chap-block">
+              <span class="c-badge">1. Deconstructing Black&ndash;Scholes</span>
+              <p>
+                The fair price is the discounted integral of the payoff times the probability density: <span class="tex">e^{-rT}\int f(S)p(S)\,dS</span>. Black and Scholes proved this integral splits cleanly into <span class="tex">S_0 N(d_1) - K e^{-rT} N(d_2)</span>. Here <span class="tex">N(d_2)</span> is the exact probability of finishing in the money, and <span class="tex">N(d_1)</span> weights the shares you receive by how deep in the money they land.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">2. Try It on the Canvas (&larr;)</span>
+              <p>
+                Watch the animated probability particles fall onto the density curve on the left. Slide the <strong>Strike <span class="tex">K</span></strong> right and left: the top shaded area is <span class="tex">N(d_2)</span>, and the bottom ember area is the expected payoff that Monte Carlo estimates by averaging random darts.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">3. Why Real Stock Drift Disappears</span>
+              <p>
+                Notice that the stock's true bull/bear drift <span class="tex">\mu</span> is completely absent! Because a dealer can hold <span class="tex">\Delta = N(d_1)</span> shares against each option sold, directional risk cancels out. By no-arbitrage, a hedged portfolio must grow at the risk-free rate <span class="tex">r</span>.
+              </p>
+            </div>
+          </article>
+
+          <!-- CHAPTER IV -->
+          <article class="math-chapter" data-chap="3">
+            <header class="chap-head">
+              <span class="chap-num">Chapter IV &middot; Antithetic Variates</span>
+              <h3>Breaking the <span class="tex">1/\sqrt{N}</span> speed limit with mirror symmetry</h3>
+            </header>
+            <p class="chap-lead">
+              By the Central Limit Theorem, Monte Carlo error shrinks as <span class="tex">\sigma_{\text{payoff}} / \sqrt{N}</span>. Cutting error by 10&times; takes 100&times; more paths. Instead of burning 100&times; more CPU cycles, we can use mathematical symmetry to shrink the numerator.
+            </p>
+            <div class="chap-block">
+              <span class="c-badge">1. Negative Covariance Is Free Precision</span>
+              <p>
+                Since the standard normal bell curve is symmetric around zero, every shock <span class="tex">+Z</span> has an equally probable twin <span class="tex">-Z</span>. When <span class="tex">+Z</span> sends the stock soaring into a huge payoff <span class="tex">f^+</span>, its mirror <span class="tex">-Z</span> sends the twin path down into a small or zero payoff <span class="tex">f^-</span>. Their errors cancel when averaged: <span class="tex">\bar{f} = \tfrac{1}{2}(f^+ + f^-)</span>.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">2. Try It on the Canvas (&larr;)</span>
+              <p>
+                Drag the <strong><span class="tex">+Z</span> slider</strong> back and forth. Watch the ember path (<span class="tex">+Z</span>) and frost path (<span class="tex">-Z</span>) swing wildly in opposite directions while their midpoint payoff <span class="tex">\bar{f}</span> (pulsing in the center) stays remarkably close to the exact Black&ndash;Scholes price.
+              </p>
+            </div>
+            <div class="chap-block">
+              <span class="c-badge">3. Exotic Options on Wall Street</span>
+              <p>
+                For path-dependent contracts (Asian options, barrier knock-outs, autocallables), no closed-form Black&ndash;Scholes formula exists&mdash;Monte Carlo is the only way to price them. Variance reduction (<a href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing/blob/main/mc_option_pricing/variance_reduction.py" target="_blank" rel="noopener"><code>variance_reduction.py</code></a>) cuts compute time in half during live market hours.
+              </p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <!-- Next Module Callout Footer -->
+      <div class="next-module-bar reveal">
+        <div>
+          <span class="kicker">Next Step &middot; Module 03</span>
+          <h3>Take these four theorems <em>onto the trading desk.</em></h3>
+          <p>Load real institutional market regimes, explore the 5 Option Greeks one by one, stress-test a Delta-hedged book, and export your reproducible experiment.</p>
+        </div>
+        <button class="btn ember-btn big-cta" data-goto="desk">Enter Module 03: Trading Desk &amp; Risk &rarr;</button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODULE 03 — TRADING DESK & RISK WORKBENCH
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="mod-view" id="mod-desk" role="tabpanel">
+    <main class="instrument">
+
+      <section class="mod-hero reveal">
+        <div>
+          <p class="kicker">Module 03 &middot; Financial Market Application &amp; Risk Workbench</p>
+          <h2>From theorem<br><em>to the trading desk.</em></h2>
+        </div>
+        <p class="concepts-lede">
+          On an institutional derivatives desk, pricing is only the first 10% of the job. The real work is <strong>managing risk</strong>: knowing how your book reacts when spot jumps, volatility spikes, or time ticks away&mdash;and hedging those sensitivities before the market moves.
+        </p>
+      </section>
+
+      <!-- Step 1: Market Regime Presets -->
+      <div class="section-subhead reveal">
+        <span>Step 1 &middot; Select a Real-World Market Regime</span>
+        <small>Click any desk scenario to reconfigure the pricing engine &amp; risk curves</small>
+      </div>
+      <div class="preset-grid reveal">
+        <button class="preset-card" data-preset="equity">
+          <span class="c-badge">Scenario A &middot; Institutional Hedging</span>
+          <h4>S&amp;P 500 Protective Put</h4>
+          <p>A fund holds equities at $100 and buys a $95 put (<span class="tex">\sigma=18\%, r=4.5\%, T=1\text{y}</span>) to insure against a market crash.</p>
+          <code>PUT &middot; S₀=100 &middot; K=95 &middot; σ=18% &middot; T=1.0y</code>
+        </button>
+        <button class="preset-card" data-preset="earnings">
+          <span class="c-badge">Scenario B &middot; Event Volatility</span>
+          <h4>Tech Earnings OTM Call</h4>
+          <p>High implied volatility (<span class="tex">\sigma=65\%</span>) ahead of quarterly earnings on a short-dated out-of-the-money call (<span class="tex">K=115, T=0.15\text{y}</span>).</p>
+          <code>CALL &middot; S₀=100 &middot; K=115 &middot; σ=65% &middot; T=0.15y</code>
+        </button>
+        <button class="preset-card" data-preset="leaps">
+          <span class="c-badge">Scenario C &middot; Long Horizon</span>
+          <h4>2.5-Year Deep-ITM LEAPS</h4>
+          <p>Long-dated institutional call replacement (<span class="tex">S_0=120, K=90, \sigma=25\%, T=2.5\text{y}</span>) where rate carry and Itô drift dominate.</p>
+          <code>CALL &middot; S₀=120 &middot; K=90 &middot; σ=25% &middot; T=2.5y</code>
+        </button>
+        <button class="preset-card on" data-preset="atm">
+          <span class="c-badge">Scenario D &middot; Benchmark Contract</span>
+          <h4>Standard Desk Benchmark</h4>
+          <p>Classic European Call (<span class="tex">S_0=100, K=110, \sigma=25\%, r=5\%, T=1.0\text{y}</span>) used for engine verification and Greeks calibration.</p>
+          <code>CALL &middot; S₀=100 &middot; K=110 &middot; σ=25% &middot; T=1.0y</code>
+        </button>
+      </div>
+
+      <!-- Step 2: Interactive Greek Explorer (Click any Greek to plot its curve on the Desk Canvas) -->
+      <div class="section-subhead reveal">
+        <span>Step 2 &middot; Interactive Sensitivities &amp; Market-Maker Hedging</span>
+        <small>Click any Greek below to inspect its partial derivative, or stress-test the Delta hedge on the canvas</small>
+      </div>
+
+      <section class="greeks-grid reveal" role="tablist" aria-label="Option Greeks">
+        <button class="g-card on" data-greek="delta">
+          <header><span class="g-sym">&Delta;</span><div><strong>Delta</strong><small>&part;V / &part;S</small></div></header>
+          <output id="gDelta">&mdash;</output>
+          <p>Shares of stock needed to hedge 1 short option.</p>
+        </button>
+        <button class="g-card" data-greek="gamma">
+          <header><span class="g-sym">&Gamma;</span><div><strong>Gamma</strong><small>&part;&sup2;V / &part;S&sup2;</small></div></header>
+          <output id="gGamma">&mdash;</output>
+          <p>Curvature of option value; how fast Delta changes.</p>
+        </button>
+        <button class="g-card" data-greek="vega">
+          <header><span class="g-sym">&#x1D4B1;</span><div><strong>Vega</strong><small>&part;V / &part;&sigma; (+1%)</small></div></header>
+          <output id="gVega">&mdash;</output>
+          <p>Dollar P&amp;L when implied volatility rises by 1 point.</p>
+        </button>
+        <button class="g-card" data-greek="theta">
+          <header><span class="g-sym">&Theta;</span><div><strong>Theta</strong><small>&part;V / &part;t (1 day)</small></div></header>
+          <output id="gTheta">&mdash;</output>
+          <p>Daily time-decay bleed as expiry approaches.</p>
+        </button>
+        <button class="g-card" data-greek="rho">
+          <header><span class="g-sym">&rho;</span><div><strong>Rho</strong><small>&part;V / &part;r (+1%)</small></div></header>
+          <output id="gRho">&mdash;</output>
+          <p>Sensitivity to a 1% shift in interest rates.</p>
+        </button>
+      </section>
+
+      <div class="desk-workbench reveal">
+        <div class="c-sandbox">
+          <div class="c-canvas-wrap">
+            <canvas id="deskCanvas" aria-label="Option value, Delta tangent hedge, and Greek profile across spot prices"></canvas>
+          </div>
+          <div class="c-controls">
+            <div class="knob">
+              <label for="dShockS">&Delta;<i>S</i> <span>instant spot shock</span></label>
+              <input id="dShockS" type="range" min="-30" max="30" step="1" value="0">
+              <output id="dShockSVal">$0 (Spot = $100)</output>
+            </div>
+            <div class="knob">
+              <label for="dContracts"><i>Q</i> <span>contracts (100 sh each)</span></label>
+              <input id="dContracts" type="range" min="1" max="50" step="1" value="10">
+              <output id="dContractsVal">10 contracts</output>
+            </div>
+          </div>
+          <div class="c-live-eq" id="deskEq"></div>
+        </div>
+
+        <div class="c-prose">
+          <div class="c-card">
+            <span class="c-badge">Live Desk Position &amp; Stress Test</span>
+            <h4 id="deskBookTitle">10 Contracts (1,000 Options)</h4>
+            <div class="book-table">
+              <div><span>Contract Fair Value (BS / MC)</span><strong id="bkFair">&mdash;</strong></div>
+              <div><span>Total Position Premium</span><strong id="bkPrem">&mdash;</strong></div>
+              <div><span>Required Delta Hedge</span><strong id="bkHedge" class="ember-txt">&mdash;</strong></div>
+              <div><span>Shocked Option Value</span><strong id="bkNewVal">&mdash;</strong></div>
+              <div><span>Unhedged Buyer P&amp;L</span><strong id="bkPnlUnhedged">&mdash;</strong></div>
+              <div><span>Delta-Hedged Desk P&amp;L (Gamma convexity)</span><strong id="bkPnlHedged">&mdash;</strong></div>
+            </div>
+          </div>
+
+          <div class="c-card">
+            <span class="c-badge" id="greekFocusBadge">Selected Greek &middot; Delta (&Delta;)</span>
+            <h4 id="greekFocusTitle">Why Delta is both a slope and a hedge ratio</h4>
+            <div class="greek-eq-row" id="greekFocusEq"></div>
+            <p id="greekFocusBody">
+              On the top chart, the solid ember curve is Black&ndash;Scholes value V(S) and the straight paper line is its tangent of slope &Delta;. When a dealer sells you an option and buys &Delta; shares, their hedged portfolio rides that tangent line: small spot moves cancel out, while large shocks leave only second-order Gamma curvature.
             </p>
           </div>
 
-          <div class="p-3.5 rounded-xl bg-[var(--bg)] border border-[var(--border-color)] space-y-2">
-            <h4 class="font-bold text-purple-400">2. Antithetic Variates &amp; Error Rate</h4>
-            <p class="text-[var(--text-muted)] leading-relaxed">
-              For each shock \(+Z\), we simulate companion \(-Z\). The estimator average:
-            </p>
-            <code class="block font-mono bg-slate-900/90 text-purple-300 p-2 rounded-lg text-[11px]">
-              C_MC = e^(-rT) * (1/N) * Σ 0.5*[f(S_T^(+)) + f(S_T^(-))]
-            </code>
-            <p class="text-[var(--text-muted)]">
-              Halves sampling variance, converging strictly at \(\mathcal{O}(1/\sqrt{N})\).
+          <div class="c-card">
+            <span class="c-badge">Dynamic Replication &amp; Convexity</span>
+            <h4>How Delta &amp; Gamma interact on a real desk</h4>
+            <p>
+              Drag the <strong>Spot Shock &Delta;S</strong> slider on the left. For small moves near <span class="tex">S_0</span>, the linear <span class="tex">\Delta</span> tangent tracks <span class="tex">V(S)</span> closely. For larger moves, the gap between the curved option value and the straight tangent line is <span class="tex">\tfrac{1}{2}\Gamma(\Delta S)^2</span>&mdash;the exact convexity residual shown in the equation box.
             </p>
           </div>
         </div>
       </div>
 
-    </section>
-  </main>
-
-  <!-- Interactive JavaScript Engine -->
-  <script>
-    // State management
-    const state = {
-      S0: 100,
-      K: 100,
-      r: 0.05,
-      sigma: 0.20,
-      T: 1.0,
-      N: 50000,
-      antithetic: true,
-      currentTab: 'gbm',
-      isDark: true,
-      results: null
-    };
-
-    // DOM Elements
-    const inputS0 = document.getElementById('inputS0');
-    const inputK = document.getElementById('inputK');
-    const inputR = document.getElementById('inputR');
-    const inputSigma = document.getElementById('inputSigma');
-    const inputT = document.getElementById('inputT');
-    const toggleAntithetic = document.getElementById('toggleAntithetic');
-    const nButtons = document.querySelectorAll('.n-btn');
-
-    const labelS0 = document.getElementById('labelS0');
-    const labelK = document.getElementById('labelK');
-    const labelR = document.getElementById('labelR');
-    const labelSigma = document.getElementById('labelSigma');
-    const labelT = document.getElementById('labelT');
-    const labelN = document.getElementById('labelN');
-
-    const cardCallPrice = document.getElementById('cardCallPrice');
-    const cardBsCall = document.getElementById('cardBsCall');
-    const cardCallCi = document.getElementById('cardCallCi');
-    const cardCallSe = document.getElementById('cardCallSe');
-
-    const cardPutPrice = document.getElementById('cardPutPrice');
-    const cardBsPut = document.getElementById('cardBsPut');
-    const cardPutCi = document.getElementById('cardPutCi');
-    const cardPutSe = document.getElementById('cardPutSe');
-
-    const metricParityGap = document.getElementById('metricParityGap');
-    const metricBsParity = document.getElementById('metricBsParity');
-    const metricCallInCi = document.getElementById('metricCallInCi');
-    const metricPutInCi = document.getElementById('metricPutInCi');
-    const metricTime = document.getElementById('metricTime');
-
-    const tabGbm = document.getElementById('tabGbm');
-    const tabDist = document.getElementById('tabDist');
-    const tabPayoff = document.getElementById('tabPayoff');
-    const chartStatusText = document.getElementById('chartStatusText');
-    const chartLegend = document.getElementById('chartLegend');
-    const mainCanvas = document.getElementById('mainCanvas');
-    const ctx = mainCanvas.getContext('2d');
-
-    // Standard Normal CDF approximation (Abramowitz & Stegun formula 7.1.26, precision 1.5e-7)
-    function stdNormCdf(x) {
-      if (x < 0) return 1 - stdNormCdf(-x);
-      const b1 = 0.319381530;
-      const b2 = -0.356563782;
-      const b3 = 1.781477937;
-      const b4 = -1.821255978;
-      const b5 = 1.330274429;
-      const p = 0.2316419;
-      const c = 0.3989422804014327; // 1/sqrt(2*pi)
-      const t = 1.0 / (1.0 + p * x);
-      const poly = ((((b5 * t + b4) * t + b3) * t + b2) * t + b1) * t;
-      return 1.0 - c * Math.exp(-0.5 * x * x) * poly;
-    }
-
-    // Exact Analytical Black-Scholes Formula
-    function blackScholes(S0, K, r, sigma, T) {
-      const d1 = (Math.log(S0 / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
-      const d2 = d1 - sigma * Math.sqrt(T);
-      const disc = Math.exp(-r * T);
-
-      const call = S0 * stdNormCdf(d1) - K * disc * stdNormCdf(d2);
-      const put = K * disc * stdNormCdf(-d2) - S0 * stdNormCdf(-d1);
-
-      return { call, put, d1, d2 };
-    }
-
-    // Box-Muller Gaussian Shock Generator
-    function boxMuller() {
-      let u1 = 0, u2 = 0;
-      while (u1 === 0) u1 = Math.random();
-      while (u2 === 0) u2 = Math.random();
-      return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-    }
-
-    // Monte Carlo Simulation Engine
-    function runSimulation() {
-      const startTime = performance.now();
-      const { S0, K, r, sigma, T, N, antithetic } = state;
-
-      const drift = (r - 0.5 * sigma * sigma) * T;
-      const volSqrtT = sigma * Math.sqrt(T);
-      const disc = Math.exp(-r * T);
-
-      let sumCall = 0;
-      let sumCallSq = 0;
-      let sumPut = 0;
-      let sumPutSq = 0;
-      let sumSt = 0;
-
-      const sampleTerminalPrices = [];
-      const numToStore = Math.min(N, 2000);
-
-      if (antithetic) {
-        const pairs = Math.floor(N / 2);
-        for (let i = 0; i < pairs; i++) {
-          const z = boxMuller();
-          
-          const sT_plus = S0 * Math.exp(drift + volSqrtT * z);
-          const sT_minus = S0 * Math.exp(drift - volSqrtT * z);
-
-          const callPlus = Math.max(sT_plus - K, 0);
-          const callMinus = Math.max(sT_minus - K, 0);
-          const callPairAvg = 0.5 * (callPlus + callMinus);
-
-          const putPlus = Math.max(K - sT_plus, 0);
-          const putMinus = Math.max(K - sT_minus, 0);
-          const putPairAvg = 0.5 * (putPlus + putMinus);
-
-          sumCall += callPairAvg;
-          sumCallSq += callPairAvg * callPairAvg;
-
-          sumPut += putPairAvg;
-          sumPutSq += putPairAvg * putPairAvg;
-
-          sumSt += sT_plus + sT_minus;
-
-          if (sampleTerminalPrices.length < numToStore) {
-            sampleTerminalPrices.push(sT_plus);
-            sampleTerminalPrices.push(sT_minus);
-          }
-        }
-
-        const callMeanDisc = disc * (sumCall / pairs);
-        const callVar = (sumCallSq / pairs - (sumCall / pairs) ** 2) / pairs;
-        const callSe = disc * Math.sqrt(Math.max(0, callVar));
-
-        const putMeanDisc = disc * (sumPut / pairs);
-        const putVar = (sumPutSq / pairs - (sumPut / pairs) ** 2) / pairs;
-        const putSe = disc * Math.sqrt(Math.max(0, putVar));
-
-        const elapsed = performance.now() - startTime;
-        const bs = blackScholes(S0, K, r, sigma, T);
-
-        state.results = {
-          callMc: callMeanDisc,
-          callSe: callSe,
-          callCi: [callMeanDisc - 1.96 * callSe, callMeanDisc + 1.96 * callSe],
-          putMc: putMeanDisc,
-          putSe: putSe,
-          putCi: [putMeanDisc - 1.96 * putSe, putMeanDisc + 1.96 * putSe],
-          bsCall: bs.call,
-          bsPut: bs.put,
-          meanSt: sumSt / (pairs * 2),
-          samplePrices: sampleTerminalPrices,
-          elapsed: elapsed
-        };
-      } else {
-        for (let i = 0; i < N; i++) {
-          const z = boxMuller();
-          const sT = S0 * Math.exp(drift + volSqrtT * z);
-          const c = Math.max(sT - K, 0);
-          const p = Math.max(K - sT, 0);
-
-          sumCall += c;
-          sumCallSq += c * c;
-          sumPut += p;
-          sumPutSq += p * p;
-          sumSt += sT;
-
-          if (sampleTerminalPrices.length < numToStore) {
-            sampleTerminalPrices.push(sT);
-          }
-        }
-
-        const callMeanDisc = disc * (sumCall / N);
-        const callVar = (sumCallSq / N - (sumCall / N) ** 2) / N;
-        const callSe = disc * Math.sqrt(Math.max(0, callVar));
-
-        const putMeanDisc = disc * (sumPut / N);
-        const putVar = (sumPutSq / N - (sumPut / N) ** 2) / N;
-        const putSe = disc * Math.sqrt(Math.max(0, putVar));
-
-        const elapsed = performance.now() - startTime;
-        const bs = blackScholes(S0, K, r, sigma, T);
-
-        state.results = {
-          callMc: callMeanDisc,
-          callSe: callSe,
-          callCi: [callMeanDisc - 1.96 * callSe, callMeanDisc + 1.96 * callSe],
-          putMc: putMeanDisc,
-          putSe: putSe,
-          putCi: [putMeanDisc - 1.96 * putSe, putMeanDisc + 1.96 * putSe],
-          bsCall: bs.call,
-          bsPut: bs.put,
-          meanSt: sumSt / N,
-          samplePrices: sampleTerminalPrices,
-          elapsed: elapsed
-        };
-      }
-
-      updateUI();
-      renderCurrentChart();
-    }
-
-    // Update UI elements with computation results
-    function updateUI() {
-      const res = state.results;
-      if (!res) return;
-
-      labelS0.textContent = `$${state.S0.toFixed(2)}`;
-      labelK.textContent = `$${state.K.toFixed(2)}`;
-      labelR.textContent = `${(state.r * 100).toFixed(1)}%`;
-      labelSigma.textContent = `${(state.sigma * 100).toFixed(1)}%`;
-      labelT.textContent = `${state.T.toFixed(2)} yr`;
-      labelN.textContent = `${state.N.toLocaleString()} paths`;
-
-      // Call metrics
-      cardCallPrice.textContent = res.callMc.toFixed(3);
-      cardBsCall.textContent = res.bsCall.toFixed(4);
-      cardCallCi.textContent = `[${res.callCi[0].toFixed(3)}, ${res.callCi[1].toFixed(3)}]`;
-      cardCallSe.textContent = res.callSe.toFixed(4);
-
-      // Put metrics
-      cardPutPrice.textContent = res.putMc.toFixed(3);
-      cardBsPut.textContent = res.bsPut.toFixed(4);
-      cardPutCi.textContent = `[${res.putCi[0].toFixed(3)}, ${res.putCi[1].toFixed(3)}]`;
-      cardPutSe.textContent = res.putSe.toFixed(4);
-
-      // Parity check
-      const theoreticalParity = state.S0 - state.K * Math.exp(-state.r * state.T);
-      const simulatedParity = res.callMc - res.putMc;
-      const parityGap = Math.abs(simulatedParity - theoreticalParity);
-
-      metricParityGap.textContent = (simulatedParity - theoreticalParity).toFixed(4);
-      metricBsParity.textContent = theoreticalParity.toFixed(4);
-
-      const callInside = res.bsCall >= res.callCi[0] && res.bsCall <= res.callCi[1];
-      const putInside = res.bsPut >= res.putCi[0] && res.bsPut <= res.putCi[1];
-
-      metricCallInCi.textContent = callInside ? "YES (Verified)" : "Outside 95% CI";
-      metricCallInCi.className = callInside ? "font-bold text-emerald-400" : "font-bold text-amber-400";
-
-      metricPutInCi.textContent = putInside ? "YES (Verified)" : "Outside 95% CI";
-      metricPutInCi.className = putInside ? "font-bold text-emerald-400" : "font-bold text-amber-400";
-
-      metricTime.textContent = `${res.elapsed.toFixed(1)} ms`;
-    }
-
-    // Canvas Resize Helper
-    function resizeCanvas() {
-      const rect = mainCanvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      mainCanvas.width = rect.width * dpr;
-      mainCanvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-    }
-
-    // Chart Renderer: 1. GBM Paths
-    function renderGbmChart() {
-      resizeCanvas();
-      const w = mainCanvas.getBoundingClientRect().width;
-      const h = mainCanvas.getBoundingClientRect().height;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const padding = { left: 55, right: 30, top: 25, bottom: 40 };
-      const plotW = w - padding.left - padding.right;
-      const plotH = h - padding.top - padding.bottom;
-
-      // Simulate 20 discrete paths with 50 time steps
-      const steps = 50;
-      const dt = state.T / steps;
-      const numPaths = 25;
-      const paths = [];
-      let minS = state.S0 * 0.7;
-      let maxS = state.S0 * 1.3;
-
-      for (let p = 0; p < numPaths; p++) {
-        const path = [state.S0];
-        let curr = state.S0;
-        for (let s = 1; s <= steps; s++) {
-          const z = boxMuller();
-          curr *= Math.exp((state.r - 0.5 * state.sigma * state.sigma) * dt + state.sigma * Math.sqrt(dt) * z);
-          path.push(curr);
-          if (curr < minS) minS = curr;
-          if (curr > maxS) maxS = curr;
-        }
-        paths.push(path);
-      }
-
-      minS = Math.max(0, minS * 0.95);
-      maxS = maxS * 1.05;
-
-      const scaleX = t => padding.left + (t / steps) * plotW;
-      const scaleY = s => padding.top + plotH - ((s - minS) / (maxS - minS)) * plotH;
-
-      // Draw Grid
-      ctx.strokeStyle = state.isDark ? '#334155' : '#e2e8f0';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let i = 0; i <= 5; i++) {
-        const yVal = minS + (i / 5) * (maxS - minS);
-        const y = scaleY(yVal);
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(padding.left + plotW, y);
-        
-        ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
-        ctx.font = '10px monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(`$${yVal.toFixed(0)}`, padding.left - 8, y + 3);
-      }
-      ctx.stroke();
-
-      // Draw Strike Price K line (dashed red)
-      const strikeY = scaleY(state.K);
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(padding.left, strikeY);
-      ctx.lineTo(padding.left + plotW, strikeY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#ef4444';
-      ctx.fillText(`K = $${state.K.toFixed(0)}`, padding.left + plotW - 5, strikeY - 5);
-
-      // Draw Paths
-      paths.forEach((path, idx) => {
-        const isUp = path[steps] >= state.K;
-        ctx.strokeStyle = isUp ? 'rgba(59, 130, 246, 0.45)' : 'rgba(168, 85, 247, 0.45)';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        for (let s = 0; s <= steps; s++) {
-          const x = scaleX(s);
-          const y = scaleY(path[s]);
-          if (s === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      });
-
-      // Draw Time Labels
-      ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
-      ctx.textAlign = 'center';
-      for (let i = 0; i <= 5; i++) {
-        const timeFraction = (i / 5) * state.T;
-        const x = scaleX((i / 5) * steps);
-        ctx.fillText(`${timeFraction.toFixed(2)}y`, x, padding.top + plotH + 18);
-      }
-      ctx.fillText("Time to Expiry (Years)", padding.left + plotW / 2, padding.top + plotH + 32);
-
-      chartStatusText.textContent = `25 Simulated Trajectories over T = ${state.T.toFixed(1)} yr`;
-      chartLegend.innerHTML = `
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> In-The-Money Path (ST ≥ K)</span>
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Out-of-The-Money Path</span>
-        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 border-t border-dashed border-red-500"></span> Strike Price K</span>
-      `;
-    }
-
-    // Chart Renderer: 2. Terminal Price Distribution
-    function renderDistChart() {
-      resizeCanvas();
-      const w = mainCanvas.getBoundingClientRect().width;
-      const h = mainCanvas.getBoundingClientRect().height;
-
-      ctx.clearRect(0, 0, w, h);
-
-      if (!state.results || !state.results.samplePrices) return;
-
-      const padding = { left: 55, right: 30, top: 25, bottom: 40 };
-      const plotW = w - padding.left - padding.right;
-      const plotH = h - padding.top - padding.bottom;
-
-      const prices = state.results.samplePrices;
-      let minP = Math.min(...prices);
-      let maxP = Math.max(...prices);
-
-      // Create 35 histogram bins
-      const binCount = 35;
-      const binWidth = (maxP - minP) / binCount;
-      const bins = new Array(binCount).fill(0);
-
-      prices.forEach(p => {
-        let b = Math.floor((p - minP) / binWidth);
-        if (b >= binCount) b = binCount - 1;
-        if (b >= 0) bins[b]++;
-      });
-
-      const maxBin = Math.max(...bins);
-
-      const scaleX = p => padding.left + ((p - minP) / (maxP - minP)) * plotW;
-      const scaleY = count => padding.top + plotH - (count / maxBin) * plotH;
-
-      // Draw Grid
-      ctx.strokeStyle = state.isDark ? '#334155' : '#e2e8f0';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let i = 0; i <= 4; i++) {
-        const y = padding.top + (i / 4) * plotH;
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(padding.left + plotW, y);
-      }
-      ctx.stroke();
-
-      // Draw Bars
-      for (let b = 0; b < binCount; b++) {
-        const pLeft = minP + b * binWidth;
-        const pMid = pLeft + binWidth / 2;
-        const x = scaleX(pLeft);
-        const barW = (plotW / binCount) - 1;
-        const barH = (bins[b] / maxBin) * plotH;
-        const y = padding.top + plotH - barH;
-
-        ctx.fillStyle = pMid >= state.K ? 'rgba(59, 130, 246, 0.7)' : 'rgba(168, 85, 247, 0.7)';
-        ctx.fillRect(x, y, Math.max(1, barW), barH);
-      }
-
-      // Draw Strike Price K Line
-      const strikeX = scaleX(state.K);
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(strikeX, padding.top);
-      ctx.lineTo(strikeX, padding.top + plotH);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.fillStyle = '#ef4444';
-      ctx.font = '10px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(`Strike K = $${state.K.toFixed(0)}`, strikeX, padding.top - 8);
-
-      // X Axis Labels
-      ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
-      for (let i = 0; i <= 5; i++) {
-        const pVal = minP + (i / 5) * (maxP - minP);
-        const x = scaleX(pVal);
-        ctx.fillText(`$${pVal.toFixed(0)}`, x, padding.top + plotH + 18);
-      }
-      ctx.fillText("Terminal Spot Price S(T) at Expiry", padding.left + plotW / 2, padding.top + plotH + 32);
-
-      chartStatusText.textContent = `Lognormal Terminal Price Distribution (${prices.length.toLocaleString()} sampled paths)`;
-      chartLegend.innerHTML = `
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-blue-500"></span> Call ITM (ST ≥ K)</span>
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-purple-500"></span> Put ITM (ST < K)</span>
-        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 border-t border-dashed border-red-500"></span> Strike Price K</span>
-      `;
-    }
-
-    // Chart Renderer: 3. Payoff Diagram
-    function renderPayoffChart() {
-      resizeCanvas();
-      const w = mainCanvas.getBoundingClientRect().width;
-      const h = mainCanvas.getBoundingClientRect().height;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const padding = { left: 55, right: 30, top: 25, bottom: 40 };
-      const plotW = w - padding.left - padding.right;
-      const plotH = h - padding.top - padding.bottom;
-
-      const minS = Math.max(0, state.K - 50);
-      const maxS = state.K + 50;
-      const maxPayoff = Math.max(state.K - minS, maxS - state.K);
-
-      const scaleX = s => padding.left + ((s - minS) / (maxS - minS)) * plotW;
-      const scaleY = payoff => padding.top + plotH - (payoff / maxPayoff) * plotH;
-
-      // Draw Grid
-      ctx.strokeStyle = state.isDark ? '#334155' : '#e2e8f0';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let i = 0; i <= 4; i++) {
-        const yVal = (i / 4) * maxPayoff;
-        const y = scaleY(yVal);
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(padding.left + plotW, y);
-        
-        ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
-        ctx.font = '10px monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(`$${yVal.toFixed(0)}`, padding.left - 8, y + 3);
-      }
-      ctx.stroke();
-
-      // Zero Payoff Baseline
-      ctx.strokeStyle = state.isDark ? '#64748b' : '#94a3b8';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(padding.left, scaleY(0));
-      ctx.lineTo(padding.left + plotW, scaleY(0));
-      ctx.stroke();
-
-      // Call Payoff Line: max(S_T - K, 0)
-      ctx.strokeStyle = '#3b82f6';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(scaleX(minS), scaleY(0));
-      ctx.lineTo(scaleX(state.K), scaleY(0));
-      ctx.lineTo(scaleX(maxS), scaleY(maxS - state.K));
-      ctx.stroke();
-
-      // Put Payoff Line: max(K - S_T, 0)
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(scaleX(minS), scaleY(state.K - minS));
-      ctx.lineTo(scaleX(state.K), scaleY(0));
-      ctx.lineTo(scaleX(maxS), scaleY(0));
-      ctx.stroke();
-
-      // X Axis Labels
-      ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
-      ctx.textAlign = 'center';
-      for (let i = 0; i <= 4; i++) {
-        const sVal = minS + (i / 4) * (maxS - minS);
-        const x = scaleX(sVal);
-        ctx.fillText(`$${sVal.toFixed(0)}`, x, padding.top + plotH + 18);
-      }
-      ctx.fillText("Terminal Stock Price S(T)", padding.left + plotW / 2, padding.top + plotH + 32);
-
-      chartStatusText.textContent = `Intrinsic European Payoff Profiles at Strike K = $${state.K.toFixed(0)}`;
-      chartLegend.innerHTML = `
-        <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-500 rounded"></span> Call Payoff: max(ST - K, 0)</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-purple-500 rounded"></span> Put Payoff: max(K - ST, 0)</span>
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Strike Pivot K = $${state.K.toFixed(0)}</span>
-      `;
-    }
-
-    function renderCurrentChart() {
-      if (state.currentTab === 'gbm') renderGbmChart();
-      else if (state.currentTab === 'dist') renderDistChart();
-      else if (state.currentTab === 'payoff') renderPayoffChart();
-    }
-
-    // Tab Event Listeners
-    tabGbm.addEventListener('click', () => {
-      state.currentTab = 'gbm';
-      updateTabStyles();
-      renderCurrentChart();
-    });
-
-    tabDist.addEventListener('click', () => {
-      state.currentTab = 'dist';
-      updateTabStyles();
-      renderCurrentChart();
-    });
-
-    tabPayoff.addEventListener('click', () => {
-      state.currentTab = 'payoff';
-      updateTabStyles();
-      renderCurrentChart();
-    });
-
-    function updateTabStyles() {
-      [tabGbm, tabDist, tabPayoff].forEach(btn => {
-        btn.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white";
-      });
-      if (state.currentTab === 'gbm') tabGbm.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white";
-      if (state.currentTab === 'dist') tabDist.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white";
-      if (state.currentTab === 'payoff') tabPayoff.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white";
-    }
-
-    // Input Listeners
-    inputS0.addEventListener('input', e => { state.S0 = parseFloat(e.target.value); runSimulation(); });
-    inputK.addEventListener('input', e => { state.K = parseFloat(e.target.value); runSimulation(); });
-    inputR.addEventListener('input', e => { state.r = parseFloat(e.target.value) / 100.0; runSimulation(); });
-    inputSigma.addEventListener('input', e => { state.sigma = parseFloat(e.target.value) / 100.0; runSimulation(); });
-    inputT.addEventListener('input', e => { state.T = parseFloat(e.target.value); runSimulation(); });
-    toggleAntithetic.addEventListener('change', e => { state.antithetic = e.target.checked; runSimulation(); });
-
-    nButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        nButtons.forEach(b => {
-          b.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500 text-[var(--text-muted)]";
-        });
-        btn.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-blue-500 bg-blue-500/20 text-blue-400";
-        state.N = parseInt(btn.getAttribute('data-n'));
-        runSimulation();
-      });
-    });
-
-    document.getElementById('runSimBtn').addEventListener('click', runSimulation);
-
-    document.getElementById('resetDefaultsBtn').addEventListener('click', () => {
-      state.S0 = 100;
-      state.K = 100;
-      state.r = 0.05;
-      state.sigma = 0.20;
-      state.T = 1.0;
-      state.N = 50000;
-      state.antithetic = true;
-
-      inputS0.value = 100;
-      inputK.value = 100;
-      inputR.value = 5;
-      inputSigma.value = 20;
-      inputT.value = 1.0;
-      toggleAntithetic.checked = true;
-
-      nButtons.forEach(b => {
-        b.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500 text-[var(--text-muted)]";
-        if (b.getAttribute('data-n') === '50000') {
-          b.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-blue-500 bg-blue-500/20 text-blue-400";
-        }
-      });
-
-      runSimulation();
-    });
-
-    // Theme Toggle
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      state.isDark = !state.isDark;
-      if (state.isDark) {
-        document.documentElement.classList.remove('light');
-      } else {
-        document.documentElement.classList.add('light');
-      }
-      renderCurrentChart();
-    });
-
-    // Export Results JSON
-    document.getElementById('exportJsonBtn').addEventListener('click', () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-        project: "Monte Carlo European Option Pricing",
-        institution: "MITS Gwalior",
-        students: [
-          { name: "Rudransh Shukla", roll: "BTMC25O1119" },
-          { name: "Vaibhav Sharma", roll: "BTMC25O1144" }
-        ],
-        parameters: {
-          S0: state.S0,
-          K: state.K,
-          r: state.r,
-          sigma: state.sigma,
-          T: state.T,
-          N: state.N,
-          antithetic: state.antithetic
-        },
-        results: {
-          call_mc: state.results.callMc,
-          call_bs: state.results.bsCall,
-          call_se: state.results.callSe,
-          call_95ci: state.results.callCi,
-          put_mc: state.results.putMc,
-          put_bs: state.results.bsPut,
-          put_se: state.results.putSe,
-          put_95ci: state.results.putCi,
-          elapsed_ms: state.results.elapsed
-        }
-      }, null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", `mc_option_pricing_${Date.now()}.json`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-    });
-
-    // Copy Summary to Clipboard
-    document.getElementById('copySummaryBtn').addEventListener('click', () => {
-      const summary = `Monte Carlo Option Pricing Results:
-S0=${state.S0}, K=${state.K}, r=${(state.r*100).toFixed(1)}%, sigma=${(state.sigma*100).toFixed(1)}%, T=${state.T}y, N=${state.N}
-Call MC: ${state.results.callMc.toFixed(4)} (BS: ${state.results.bsCall.toFixed(4)}, SE: ${state.results.callSe.toFixed(4)})
-Put MC:  ${state.results.putMc.toFixed(4)} (BS: ${state.results.bsPut.toFixed(4)}, SE: ${state.results.putSe.toFixed(4)})
-Parity check: S0 - K*exp(-rT) = ${(state.S0 - state.K * Math.exp(-state.r * state.T)).toFixed(4)}`;
-      navigator.clipboard.writeText(summary).then(() => {
-        alert("Summary copied to clipboard!");
-      });
-    });
-
-    // Handle Window Resize
-    window.addEventListener('resize', renderCurrentChart);
-
-    // Initial Execution
-    runSimulation();
-  </script>
+      <!-- Step 3: Reproducible Research & Artifact Export -->
+      <div class="section-subhead reveal">
+        <span>Step 3 &middot; Reproducible Research &amp; Artifact Export</span>
+        <small>Run this exact experiment in the Python CLI engine or export the quantitative report</small>
+      </div>
+      <section class="artifact-bar reveal">
+        <div class="cli-box">
+          <label>Equivalent Python CLI Command (<a href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing" target="_blank" rel="noopener"><code>mc_option_pricing</code></a>)</label>
+          <pre id="cliCmd">python -m mc_option_pricing --S0 100 --K 110 --r 0.05 --sigma 0.25 --T 1.0 --paths 100000 --seed 1592598566</pre>
+        </div>
+        <div class="artifact-actions">
+          <button id="btnCopyCli" class="btn">Copy CLI Command</button>
+          <button id="btnCopyReport" class="btn">Copy Quant Summary</button>
+          <button id="btnExportJson" class="btn ember-btn">Download JSON Artifact &darr;</button>
+        </div>
+      </section>
+
+      <!-- Back to Simulator Callout -->
+      <div class="next-module-bar reveal">
+        <div>
+          <span class="kicker">Full Circle</span>
+          <h3>Return to the Live Simulator with this scenario loaded</h3>
+          <p>Watch the 1,000,000 Brownian futures and convergence funnel evolve for the market regime you selected above.</p>
+        </div>
+        <button class="btn ember-btn big-cta" data-goto="sim">&larr; Back to Module 01: Live Simulator</button>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    <p><b>Model.</b> Risk-neutral geometric Brownian motion with constant <i>&#x3C3;</i> and <i>r</i> and no dividends.
+      Real markets have fat tails, volatility smiles and jumps, and Monte Carlo handles those too. That flexibility is why it runs on trading desks.</p>
+    <p>Same mathematics as the Python engine in <a href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing/tree/main/mc_option_pricing" target="_blank" rel="noopener">mc_option_pricing/</a>,
+      running entirely in your browser. &middot; Rudransh Shukla with Vaibhav Sharma &middot; MITS Gwalior</p>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
