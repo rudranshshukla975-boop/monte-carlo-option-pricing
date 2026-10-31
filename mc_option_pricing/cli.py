@@ -1,5 +1,5 @@
 """
-Command-Line Interface & Interactive Studio for Monte Carlo Option Pricing.
+Command-Line Interface for Monte Carlo Option Pricing.
 
 Run directly via:
     python mc_option_pricing.py
@@ -14,7 +14,7 @@ import time
 import webbrowser
 from typing import Optional
 
-# Ensure UTF-8 output on all operating systems (prevents cp1252 charmap errors on Windows)
+# Ensure UTF-8 output across environments
 if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -75,27 +75,26 @@ def dim(text: str) -> str:
 
 
 BANNER = r"""
-  ╔════════════════════════════════════════════════════════════════════════════╗
-  ║    🎲  MONTE CARLO OPTION PRICING STUDIO                                  ║
-  ║    Simulating Parallel Financial Universes with Python & NumPy             ║
-  ╚════════════════════════════════════════════════════════════════════════════╝
+  +----------------------------------------------------------------------------+
+  |    MONTE CARLO OPTION PRICING                                              |
+  |    Risk-Neutral Simulation & Black-Scholes Analytical Benchmark            |
+  +----------------------------------------------------------------------------+
 """
 
 
 def format_ci_gauge(lo: float, hi: float, target: float, width: int = 24) -> str:
-    """Format a graphical ASCII confidence interval showing where the target falls."""
+    """Format an ASCII confidence interval gauge showing target position."""
     if hi <= lo:
         return "[?]"
-    # Clamp ratio between 0 and 1
     ratio = (target - lo) / (hi - lo)
     pos = int(round(ratio * (width - 1)))
     pos = max(0, min(width - 1, pos))
 
-    bar = ["─"] * width
-    bar[pos] = "●"
+    bar = ["-"] * width
+    bar[pos] = "|"
     bar_str = "".join(bar)
     inside = lo <= target <= hi
-    status = green("✓ Inside CI") if inside else red("✗ Outside CI")
+    status = green("[OK: Inside CI]") if inside else red("[FAIL: Outside CI]")
     return f"[{cyan(bar_str)}] {status}"
 
 
@@ -110,16 +109,16 @@ def print_pricing_report(
     show_both: bool = True,
     target_opt: str = "both",
 ):
-    """Print an aesthetic, colored terminal dashboard comparing MC against Black-Scholes."""
+    """Print structured terminal table comparing MC against Black-Scholes."""
     opts = ["call", "put"] if target_opt == "both" else [target_opt]
 
-    print(f"\n{bold(cyan('📊 CONTRACT & MARKET PARAMETERS:'))}")
-    print(f"  • Spot Price (S0)      : {bold(f'${S0:,.2f}')}")
-    print(f"  • Strike Price (K)     : {bold(f'${K:,.2f}')} ({'ATM' if S0 == K else ('ITM' if S0 > K else 'OTM')})")
-    print(f"  • Risk-Free Rate (r)   : {bold(f'{r * 100:.2f}%')} per annum")
-    print(f"  • Volatility (σ)       : {bold(f'{sigma * 100:.2f}%')} annualized")
-    print(f"  • Time to Expiry (T)   : {bold(f'{T:.2f} years')} (~{int(T * 252)} trading days)")
-    print(f"  • Simulated Paths (N)  : {bold(f'{n_paths:,}')} trajectories\n")
+    print(f"\n{bold(cyan('CONTRACT & MARKET PARAMETERS:'))}")
+    print(f"  Spot Price (S0)      : {bold(f'${S0:,.2f}')}")
+    print(f"  Strike Price (K)     : {bold(f'${K:,.2f}')} ({'ATM' if S0 == K else ('ITM' if S0 > K else 'OTM')})")
+    print(f"  Risk-Free Rate (r)   : {bold(f'{r * 100:.2f}%')} p.a.")
+    print(f"  Volatility (sigma)   : {bold(f'{sigma * 100:.2f}%')} annualized")
+    print(f"  Time to Expiry (T)   : {bold(f'{T:.2f} years')} ({int(T * 252)} trading days)")
+    print(f"  Simulated Paths (N)  : {bold(f'{n_paths:,}')} trajectories\n")
 
     results = {}
     for opt in opts:
@@ -140,17 +139,17 @@ def print_pricing_report(
             "speedup": speedup,
         }
 
-        header = f"📈 EUROPEAN {opt.upper()} OPTION" if opt == "call" else f"📉 EUROPEAN {opt.upper()} OPTION"
-        print(bold(magenta(f"┌{'─' * 66}┐")))
-        print(bold(magenta(f"│  {header:<64}│")))
-        print(bold(magenta(f"├{'─' * 66}┤")))
-        print(f"│  Analytical Black-Scholes : {bold(green(f'${bs_price:,.4f}')):<53}│")
-        print(f"│  Plain Monte Carlo        : {bold(f'${mc_p:,.4f}')} ± ${1.96 * mc_se:,.4f} (SE: {mc_se:.4f}){' ':>14}│")
-        print(f"│  95% Confidence Interval  : [${mc_lo:,.4f}, ${mc_hi:,.4f}]{' ':>30}│")
-        print(f"│  CI Alignment Visual      : {format_ci_gauge(mc_lo, mc_hi, bs_price):<53}│")
-        print(f"│  Antithetic Variates MC   : {bold(f'${anti_p:,.4f}')} ± ${1.96 * anti_se:,.4f} (SE: {anti_se:.4f}){' ':>14}│")
-        print(f"│  Variance Reduction Gain  : {bold(yellow(f'🚀 {speedup:.2f}x speedup equivalent')):<52}│")
-        print(bold(magenta(f"└{'─' * 66}┘\n")))
+        header = f"EUROPEAN {opt.upper()} OPTION"
+        print(bold(magenta(f"+{'-' * 66}+")))
+        print(bold(magenta(f"|  {header:<64}|")))
+        print(bold(magenta(f"+{'-' * 66}+")))
+        print(f"|  Black-Scholes (Exact)    : {bold(green(f'${bs_price:,.4f}')):<53}|")
+        print(f"|  Plain Monte Carlo        : {bold(f'${mc_p:,.4f}')} +/- ${1.96 * mc_se:,.4f} (SE: {mc_se:.4f}){' ':>14}|")
+        print(f"|  95% Confidence Interval  : [${mc_lo:,.4f}, ${mc_hi:,.4f}]{' ':>30}|")
+        print(f"|  CI Alignment Gauge       : {format_ci_gauge(mc_lo, mc_hi, bs_price):<53}|")
+        print(f"|  Antithetic Variates MC   : {bold(f'${anti_p:,.4f}')} +/- ${1.96 * anti_se:,.4f} (SE: {anti_se:.4f}){' ':>14}|")
+        print(f"|  Variance Reduction Gain  : {bold(yellow(f'{speedup:.2f}x speedup equivalent')):<52}|")
+        print(bold(magenta(f"+{'-' * 66}+\n")))
 
     if target_opt == "both":
         c_mc = results["call"]["mc"]
@@ -158,15 +157,15 @@ def print_pricing_report(
         parity_lhs = c_mc - p_mc
         parity_rhs = S0 - K * math.exp(-r * T)
         parity_gap = abs(parity_lhs - parity_rhs)
-        print(dim("  Put-Call Parity Identity Check: C - P = S0 - K * exp(-r * T)"))
-        print(f"  • C - P (Monte Carlo) : ${parity_lhs:,.4f}")
-        print(f"  • S0 - K*exp(-rT)     : ${parity_rhs:,.4f}")
-        print(f"  • Parity Gap          : ${parity_gap:,.6f} {green('✓ Satisfied within numerical error')}\n")
+        print(dim("  Put-Call Parity Identity: C - P = S0 - K * exp(-r * T)"))
+        print(f"  C - P (Monte Carlo) : ${parity_lhs:,.4f}")
+        print(f"  S0 - K*exp(-rT)     : ${parity_rhs:,.4f}")
+        print(f"  Parity Difference   : ${parity_gap:,.6f} {green('[Verified within numerical error]')}\n")
 
 
 def run_benchmark():
-    """Run a high-speed duel comparing naive Python loops vs vectorized NumPy."""
-    print(bold(cyan("\n⚡ PERFORMANCE DUEL: Vectorized NumPy vs Naive Python Loops")))
+    """Run performance comparison between naive loops and vectorized NumPy."""
+    print(bold(cyan("\nPERFORMANCE BENCHMARK: Vectorized NumPy vs Naive Python Loops")))
     print(dim("   Simulating 200,000 terminal GBM stock paths & Call option payoffs...\n"))
 
     S0, K, r, sigma, T = 100.0, 100.0, 0.05, 0.20, 1.0
@@ -199,14 +198,14 @@ def run_benchmark():
     print(f" {green(f'{time_vec * 1000:.1f} ms')} (Price: ${vec_price:.4f})")
 
     speedup = time_loop / time_vec if time_vec > 0 else 1.0
-    print(f"\n   🏆 {bold(green(f'Vectorized NumPy is {speedup:.1f}x faster!'))}")
-    print(dim(f"   Processed {N:,} paths in just {time_vec * 1000:.1f} ms ({int(N / time_vec):,} paths/sec).\n"))
+    print(f"\n   {bold(green(f'Result: Vectorized NumPy is {speedup:.1f}x faster.'))}")
+    print(dim(f"   Throughput: {int(N / time_vec):,} paths/sec ({time_vec * 1000:.1f} ms elapsed).\n"))
 
 
 def render_ascii_paths(n_steps: int = 40, n_paths: int = 3):
-    """Draw sample Geometric Brownian Motion trajectories in ASCII directly in terminal."""
-    print(bold(cyan("\n📈 ASCII TERMINAL TRAJECTORY VISUALIZER:")))
-    print(dim(f"   Simulating {n_paths} stock trajectories over 1 year (Strike K=100 dotted)...\n"))
+    """Draw sample Geometric Brownian Motion trajectories in ASCII."""
+    print(bold(cyan("\nASCII TRAJECTORY VISUALIZATION:")))
+    print(dim(f"   Simulating {n_paths} stock trajectories over 1 year (Strike K=100 indicated)...\n"))
 
     S0, r, sigma, T = 100.0, 0.05, 0.20, 1.0
     rng = np.random.default_rng(7)
@@ -223,7 +222,7 @@ def render_ascii_paths(n_steps: int = 40, n_paths: int = 3):
     strike_row = int(round((100.0 - min_p) / (max_p - min_p) * (height - 1)))
     strike_row = height - 1 - strike_row
     for col in range(n_steps + 1):
-        grid[strike_row][col] = dim("·")
+        grid[strike_row][col] = dim("-")
 
     # Draw paths
     symbols = ["*", "o", "+"]
@@ -237,33 +236,33 @@ def render_ascii_paths(n_steps: int = 40, n_paths: int = 3):
 
     for r_idx, row in enumerate(grid):
         price_val = max_p - (r_idx / (height - 1)) * (max_p - min_p)
-        label = f"${price_val:5.1f} │"
+        label = f"${price_val:5.1f} |"
         print(f"   {dim(label)}{''.join(row)}")
 
-    print("   " + dim("       └" + "─" * (n_steps + 1)))
+    print("   " + dim("       +" + "-" * (n_steps + 1)))
     print("   " + dim(f"        t=0{' ' * (n_steps - 10)}Expiry T=1.0 yr\n"))
 
 
 def interactive_menu():
-    """Interactive retro-quant terminal prompt for hands-on experimentation."""
+    """Terminal interactive menu for scenario evaluation."""
     print(color(BANNER, "36"))
-    print(bold("Welcome to the Monte Carlo Option Pricing Interactive Studio!"))
-    print(dim("Explore risk-neutral pricing, antithetic variates, and parallel universes.\n"))
+    print(bold("Monte Carlo Option Pricing: Interactive Console"))
+    print(dim("Evaluate derivative contracts, variance reduction, and convergence rates.\n"))
 
     while True:
-        print(bold(cyan("Choose an experiment:")))
-        print("  [1] 🎯 Standard ATM Benchmark (Spot $100, Strike $100, 20% Vol)")
-        print("  [2] 🚀 Moonshot OTM Call (Spot $100, Strike $130, 50% Vol - High Risk)")
-        print("  [3] 🛡️ Deep ITM Protective Put (Spot $100, Strike $125 - Crash Hedge)")
-        print("  [4] 🎛️ Custom Scenario Sandbox (Set your own parameters)")
-        print("  [5] ⚡ Performance Duel: Vectorized NumPy vs Python Loops")
-        print("  [6] 📊 Render ASCII GBM Stock Paths in Terminal")
-        print("  [7] 🌐 Launch Interactive Web Simulator in Browser")
-        print("  [0] 🚪 Exit")
+        print(bold(cyan("Select an option:")))
+        print("  [1] Standard Benchmark (Spot $100, Strike $100, 20% Vol)")
+        print("  [2] Out-of-the-Money Call (Spot $100, Strike $130, 50% Vol)")
+        print("  [3] In-the-Money Protective Put (Spot $100, Strike $125)")
+        print("  [4] Custom Parameter Input")
+        print("  [5] Run Execution Benchmark (NumPy vs Loops)")
+        print("  [6] Render ASCII GBM Paths")
+        print("  [7] Open Web Simulator in Browser")
+        print("  [0] Exit")
 
         choice = input(bold("\nEnter selection [0-7]: ")).strip()
         if choice == "0":
-            print(green("\nHappy quantitative trading! May your Sharpe ratios be high.\n"))
+            print(green("\nSession ended.\n"))
             break
         elif choice == "1":
             print_pricing_report(100.0, 100.0, 0.05, 0.20, 1.0, 100_000)
@@ -297,15 +296,15 @@ def interactive_menu():
             print(yellow("  Unrecognized option. Please choose 0-7."))
 
         input(dim("\nPress [Enter] to continue..."))
-        print("\n" + "─" * 70 + "\n")
+        print("\n" + "-" * 70 + "\n")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="🎲 Monte Carlo Option Pricing Studio — European option pricing with Black-Scholes verification.",
+        description="Monte Carlo Option Pricing: Numerical simulation engine and Black-Scholes benchmark.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("-S", "--spot", type=float, default=100.0, help="Initial spot stock price S0 (default: 100.0)")
+    parser.add_argument("-S", "--spot", type=float, default=100.0, help="Initial spot price S0 (default: 100.0)")
     parser.add_argument("-K", "--strike", type=float, default=100.0, help="Strike price K (default: 100.0)")
     parser.add_argument("-r", "--rate", type=float, default=0.05, help="Annual risk-free rate r (default: 0.05)")
     parser.add_argument("-v", "--vol", type=float, default=0.20, help="Annual volatility sigma (default: 0.20)")
@@ -313,8 +312,8 @@ def main():
     parser.add_argument("-N", "--paths", type=int, default=100_000, help="Number of simulated paths (default: 100,000)")
     parser.add_argument("-o", "--option", choices=["call", "put", "both"], default="both", help="Option contract type")
     parser.add_argument("-s", "--seed", type=int, default=42, help="Random seed for reproducibility")
-    parser.add_argument("-i", "--interactive", action="store_true", help="Launch interactive terminal studio")
-    parser.add_argument("-b", "--benchmark", action="store_true", help="Run NumPy vectorization vs loop speed benchmark")
+    parser.add_argument("-i", "--interactive", action="store_true", help="Launch interactive console")
+    parser.add_argument("-b", "--benchmark", action="store_true", help="Run execution speed benchmark")
     parser.add_argument("--ascii", action="store_true", help="Render ASCII GBM trajectories in terminal")
 
     args = parser.parse_args()

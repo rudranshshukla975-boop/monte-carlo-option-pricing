@@ -81,8 +81,8 @@
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           <span>GitHub</span>
         </a>
-        <button id="themeToggle" class="p-2.5 rounded-xl card hover:border-blue-500 transition-all text-sm font-medium" title="Toggle Light/Dark Theme">
-          🌓
+        <button id="themeToggle" class="px-2.5 py-1.5 rounded-xl card hover:border-blue-500 transition-all text-xs font-semibold" title="Toggle Light/Dark Theme">
+          Theme
         </button>
       </div>
     </div>
@@ -95,8 +95,8 @@
     <section class="lg:col-span-4 space-y-6">
       <div class="card p-6 shadow-sm space-y-5">
         <div class="flex items-center justify-between">
-          <h2 class="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
-            ⚙️ Market Parameters
+          <h2 class="text-base font-bold text-[var(--text-main)]">
+            Market Parameters
           </h2>
           <button id="resetDefaultsBtn" class="text-xs text-blue-400 hover:text-blue-300 underline">
             Reset
@@ -150,8 +150,8 @@
 
         <hr class="border-[var(--border-color)]">
 
-        <h3 class="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
-          🎲 Simulation Engine
+        <h3 class="text-sm font-bold text-[var(--text-main)]">
+          Simulation Engine
         </h3>
 
         <!-- Number of paths N -->
@@ -182,15 +182,15 @@
 
         <!-- Action Buttons -->
         <div class="pt-2 flex flex-col gap-2">
-          <button id="runSimBtn" class="w-full py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
-            ▶ Run Simulation
+          <button id="runSimBtn" class="w-full py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center justify-center">
+            Run Simulation
           </button>
           <div class="grid grid-cols-2 gap-2">
             <button id="exportJsonBtn" class="py-2 text-xs font-semibold rounded-xl border border-[var(--border-color)] hover:bg-slate-800 transition-all text-[var(--text-muted)] hover:text-white">
-              📥 Export JSON
+              Export JSON
             </button>
             <button id="copySummaryBtn" class="py-2 text-xs font-semibold rounded-xl border border-[var(--border-color)] hover:bg-slate-800 transition-all text-[var(--text-muted)] hover:text-white">
-              📋 Copy Summary
+              Copy Summary
             </button>
           </div>
         </div>
@@ -198,8 +198,8 @@
 
       <!-- Quick Benchmark Summary Card -->
       <div class="card p-5 space-y-3 text-xs">
-        <h4 class="font-bold text-[var(--text-main)] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-          <span>🎯</span> Parity &amp; Convergence Check
+        <h4 class="font-bold text-[var(--text-main)] uppercase tracking-wider text-[11px]">
+          Parity &amp; Convergence Check
         </h4>
         <div class="space-y-2">
           <div class="flex justify-between">
@@ -295,13 +295,13 @@
         <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-[var(--border-color)]">
           <div class="flex gap-2">
             <button id="tabGbm" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white">
-              📈 Geometric Brownian Motion Paths
+              Geometric Brownian Motion Paths
             </button>
             <button id="tabDist" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white">
-              📊 Terminal Price Distribution (\(S_T\))
+              Terminal Price Distribution (\(S_T\))
             </button>
             <button id="tabPayoff" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white">
-              📐 Payoff Diagram
+              Payoff Diagram
             </button>
           </div>
           <span class="text-[11px] text-[var(--text-muted)] font-mono" id="chartStatusText">
@@ -322,8 +322,8 @@
 
       <!-- Mathematical Formulation & Vectorization Explainer -->
       <div class="card p-6 shadow-sm space-y-4 text-xs">
-        <h3 class="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
-          🧠 Mathematical Principles &amp; Computational Vectorization
+        <h3 class="text-sm font-bold text-[var(--text-main)]">
+          Mathematical Principles &amp; Computational Vectorization
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="p-3.5 rounded-xl bg-[var(--bg)] border border-[var(--border-color)] space-y-2">
