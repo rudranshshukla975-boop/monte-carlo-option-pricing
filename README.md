@@ -56,7 +56,7 @@ $$\text{SE} = \frac{s}{\sqrt{N}}, \quad s = \sqrt{\frac{1}{N-1} \sum_{i=1}^N \le
 
 Yielding the asymptotic 95% Confidence Interval:
 
-$$\text{CI}_{95\%} = \left[ \hat{C}_N - 1.96 \cdot \text{SE}, \; \hat{C}_N + 1.96 \cdot \text{SE} \right]$$
+$$\text{CI}_{0.95} = \left[ \hat{C}_N - 1.96 \cdot \text{SE}, \quad \hat{C}_N + 1.96 \cdot \text{SE} \right]$$
 
 ---
 
@@ -230,7 +230,7 @@ Uniform pseudo-random numbers produced by a Linear Congruential Generator (LCG) 
 
 ## Benchmark Verification Results
 
-Baseline market parameters ($S_0 = 100$, $K = 100$, $r = 5\%$, $\sigma = 20\%$, $T = 1.0\text{ yr}$, $N = 100,000$):
+Baseline market parameters ($S_0 = 100$, $K = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 1.0\text{ yr}$, $N = 100,000$):
 
 | Contract | Monte Carlo | Standard Error | 95% Confidence Interval | Black-Scholes | Discrepancy | Inside 95% CI |
 |:---------|:-----------:|:--------------:|:-----------------------:|:-------------:|:-----------:|:-------------:|
