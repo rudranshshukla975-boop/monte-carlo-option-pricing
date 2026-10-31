@@ -1,0 +1,1046 @@
+<!-- Same interactive simulator web app saved in workspace for easy local launch or web deployment -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monte Carlo European Option Pricing — Interactive Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #10b981;
+      --purple: #8b5cf6;
+      --amber: #f59e0b;
+    }
+    html.light {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #059669;
+      --purple: #7c3aed;
+      --amber: #d97706;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+    }
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+    canvas {
+      border-radius: 0.75rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 transition-colors duration-200">
+
+  <!-- Header Section -->
+  <header class="max-w-7xl mx-auto mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-color)]">
+      <div>
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
+          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            B.Tech Project 1 — MITS Gwalior
+          </span>
+          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            Department of Mathematics &amp; Computing
+          </span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
+          Monte Carlo European Option Pricing Simulator
+        </h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">
+          Vectorized Stochastic Simulation, Antithetic Variates &amp; Black-Scholes Analytical Verification
+        </p>
+      </div>
+
+      <!-- Authors Badge, GitHub Star & Theme Toggle -->
+      <div class="flex items-center gap-3">
+        <div class="text-right text-xs hidden sm:block">
+          <p class="font-bold text-[var(--text-main)]">Rudransh Shukla</p>
+          <p class="text-[var(--text-muted)] text-[11px]">with Vaibhav Sharma</p>
+        </div>
+        <a href="https://github.com/rudranshshukla975-boop/monte-carlo-option-pricing" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl card hover:border-blue-500 transition-all text-xs font-semibold flex items-center gap-1.5 text-[var(--text-main)] shadow-sm" title="View Source on GitHub">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <button id="themeToggle" class="p-2.5 rounded-xl card hover:border-blue-500 transition-all text-sm font-medium" title="Toggle Light/Dark Theme">
+          🌓
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Controls (4 cols) -->
+    <section class="lg:col-span-4 space-y-6">
+      <div class="card p-6 shadow-sm space-y-5">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+            ⚙️ Market Parameters
+          </h2>
+          <button id="resetDefaultsBtn" class="text-xs text-blue-400 hover:text-blue-300 underline">
+            Reset
+          </button>
+        </div>
+
+        <!-- Initial Stock Price S0 -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="inputS0" class="font-semibold text-[var(--text-muted)]">Spot Price (\(S_0\))</label>
+            <span id="labelS0" class="font-mono font-bold text-blue-400">$100.00</span>
+          </div>
+          <input type="range" id="inputS0" min="20" max="250" step="1" value="100" class="w-full">
+        </div>
+
+        <!-- Strike Price K -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="inputK" class="font-semibold text-[var(--text-muted)]">Strike Price (\(K\))</label>
+            <span id="labelK" class="font-mono font-bold text-blue-400">$100.00</span>
+          </div>
+          <input type="range" id="inputK" min="20" max="250" step="1" value="100" class="w-full">
+        </div>
+
+        <!-- Risk-free Rate r -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="inputR" class="font-semibold text-[var(--text-muted)]">Risk-Free Rate (\(r\))</label>
+            <span id="labelR" class="font-mono font-bold text-blue-400">5.0%</span>
+          </div>
+          <input type="range" id="inputR" min="0" max="20" step="0.5" value="5" class="w-full">
+        </div>
+
+        <!-- Volatility sigma -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="inputSigma" class="font-semibold text-[var(--text-muted)]">Volatility (\(\sigma\))</label>
+            <span id="labelSigma" class="font-mono font-bold text-blue-400">20.0%</span>
+          </div>
+          <input type="range" id="inputSigma" min="5" max="80" step="1" value="20" class="w-full">
+        </div>
+
+        <!-- Time to Expiry T -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="inputT" class="font-semibold text-[var(--text-muted)]">Time to Expiry (\(T\) in yrs)</label>
+            <span id="labelT" class="font-mono font-bold text-blue-400">1.00 yr</span>
+          </div>
+          <input type="range" id="inputT" min="0.1" max="5.0" step="0.05" value="1.0" class="w-full">
+        </div>
+
+        <hr class="border-[var(--border-color)]">
+
+        <h3 class="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+          🎲 Simulation Engine
+        </h3>
+
+        <!-- Number of paths N -->
+        <div class="space-y-2">
+          <div class="flex justify-between text-xs">
+            <span class="font-semibold text-[var(--text-muted)]">Sample Paths (\(N\))</span>
+            <span id="labelN" class="font-mono font-bold text-purple-400">50,000 paths</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500" data-n="5000">5k</button>
+            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500" data-n="20000">20k</button>
+            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-blue-500 bg-blue-500/20 text-blue-400" data-n="50000">50k</button>
+            <button class="n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500" data-n="100000">100k</button>
+          </div>
+        </div>
+
+        <!-- Variance Reduction Toggle -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-[var(--bg)] border border-[var(--border-color)]">
+          <div>
+            <span class="text-xs font-bold block text-[var(--text-main)]">Antithetic Variates</span>
+            <span class="text-[11px] text-[var(--text-muted)]">Variance Reduction \(\pm Z\)</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="toggleAntithetic" class="sr-only peer" checked>
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-2 flex flex-col gap-2">
+          <button id="runSimBtn" class="w-full py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
+            ▶ Run Simulation
+          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="exportJsonBtn" class="py-2 text-xs font-semibold rounded-xl border border-[var(--border-color)] hover:bg-slate-800 transition-all text-[var(--text-muted)] hover:text-white">
+              📥 Export JSON
+            </button>
+            <button id="copySummaryBtn" class="py-2 text-xs font-semibold rounded-xl border border-[var(--border-color)] hover:bg-slate-800 transition-all text-[var(--text-muted)] hover:text-white">
+              📋 Copy Summary
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Benchmark Summary Card -->
+      <div class="card p-5 space-y-3 text-xs">
+        <h4 class="font-bold text-[var(--text-main)] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+          <span>🎯</span> Parity &amp; Convergence Check
+        </h4>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">Parity Gap (\(C - P - [S_0 - Ke^{-rT}]\)):</span>
+            <span id="metricParityGap" class="font-mono font-bold text-emerald-400">0.0000</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">BS Parity Target:</span>
+            <span id="metricBsParity" class="font-mono text-[var(--text-main)]">4.8771</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">Call Inside 95% CI:</span>
+            <span id="metricCallInCi" class="font-bold text-emerald-400">YES (Verified)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">Put Inside 95% CI:</span>
+            <span id="metricPutInCi" class="font-bold text-emerald-400">YES (Verified)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">Simulated Time:</span>
+            <span id="metricTime" class="font-mono text-purple-400">12 ms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Results & Interactive Visualizations (8 cols) -->
+    <section class="lg:col-span-8 space-y-6">
+
+      <!-- Pricing KPI Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- Call Option Card -->
+        <div class="card p-5 border-l-4 border-l-blue-500 space-y-3 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-blue-400">European Call Option</span>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              Payoff: \(\max(S_T - K, 0)\)
+            </span>
+          </div>
+          <div class="flex items-baseline gap-3">
+            <span id="cardCallPrice" class="text-3xl font-extrabold font-mono text-[var(--text-main)]">10.450</span>
+            <span class="text-xs text-[var(--text-muted)]">USD</span>
+          </div>
+          <div class="text-xs space-y-1 pt-1 border-t border-[var(--border-color)]">
+            <div class="flex justify-between">
+              <span class="text-[var(--text-muted)]">Black-Scholes Exact:</span>
+              <span id="cardBsCall" class="font-mono font-bold text-blue-300">10.4506</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[var(--text-muted)]">95% Confidence Interval:</span>
+              <span id="cardCallCi" class="font-mono text-[var(--text-muted)]">[10.321, 10.579]</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[var(--text-muted)]">Standard Error (\(SE\)):</span>
+              <span id="cardCallSe" class="font-mono text-purple-400">0.0658</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Put Option Card -->
+        <div class="card p-5 border-l-4 border-l-purple-500 space-y-3 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-400">European Put Option</span>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              Payoff: \(\max(K - S_T, 0)\)
+            </span>
+          </div>
+          <div class="flex items-baseline gap-3">
+            <span id="cardPutPrice" class="text-3xl font-extrabold font-mono text-[var(--text-main)]">5.573</span>
+            <span class="text-xs text-[var(--text-muted)]">USD</span>
+          </div>
+          <div class="text-xs space-y-1 pt-1 border-t border-[var(--border-color)]">
+            <div class="flex justify-between">
+              <span class="text-[var(--text-muted)]">Black-Scholes Exact:</span>
+              <span id="cardBsPut" class="font-mono font-bold text-purple-300">5.5735</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[var(--text-muted)]">95% Confidence Interval:</span>
+              <span id="cardPutCi" class="font-mono text-[var(--text-muted)]">[5.485, 5.661]</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[var(--text-muted)]">Standard Error (\(SE\)):</span>
+              <span id="cardPutSe" class="font-mono text-purple-400">0.0449</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Canvas Charts Container -->
+      <div class="card p-6 shadow-sm space-y-4">
+        <!-- Chart Tab Selectors -->
+        <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-[var(--border-color)]">
+          <div class="flex gap-2">
+            <button id="tabGbm" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white">
+              📈 Geometric Brownian Motion Paths
+            </button>
+            <button id="tabDist" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white">
+              📊 Terminal Price Distribution (\(S_T\))
+            </button>
+            <button id="tabPayoff" class="chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white">
+              📐 Payoff Diagram
+            </button>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] font-mono" id="chartStatusText">
+            Rendering 25 Sample Trajectories
+          </span>
+        </div>
+
+        <!-- Canvas Element -->
+        <div class="relative w-full aspect-[16/9] max-h-[380px] bg-slate-950/60 rounded-xl overflow-hidden border border-[var(--border-color)]">
+          <canvas id="mainCanvas" class="w-full h-full block"></canvas>
+        </div>
+
+        <!-- Chart Legend / Details -->
+        <div id="chartLegend" class="flex flex-wrap items-center justify-center gap-4 text-xs text-[var(--text-muted)] pt-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Mathematical Formulation & Vectorization Explainer -->
+      <div class="card p-6 shadow-sm space-y-4 text-xs">
+        <h3 class="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+          🧠 Mathematical Principles &amp; Computational Vectorization
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-3.5 rounded-xl bg-[var(--bg)] border border-[var(--border-color)] space-y-2">
+            <h4 class="font-bold text-blue-400">1. Exact GBM Solution (Itô's Lemma)</h4>
+            <p class="text-[var(--text-muted)] leading-relaxed">
+              Under risk-neutral probability \(\mathbb{Q}\), stock price follows:
+            </p>
+            <code class="block font-mono bg-slate-900/90 text-blue-300 p-2 rounded-lg text-[11px]">
+              S(T) = S_0 * exp((r - 0.5*σ²)*T + σ*sqrt(T)*Z)
+            </code>
+            <p class="text-[var(--text-muted)]">
+              Where \(Z \sim \mathcal{N}(0, 1)\) is generated via the Box-Muller transform.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-[var(--bg)] border border-[var(--border-color)] space-y-2">
+            <h4 class="font-bold text-purple-400">2. Antithetic Variates &amp; Error Rate</h4>
+            <p class="text-[var(--text-muted)] leading-relaxed">
+              For each shock \(+Z\), we simulate companion \(-Z\). The estimator average:
+            </p>
+            <code class="block font-mono bg-slate-900/90 text-purple-300 p-2 rounded-lg text-[11px]">
+              C_MC = e^(-rT) * (1/N) * Σ 0.5*[f(S_T^(+)) + f(S_T^(-))]
+            </code>
+            <p class="text-[var(--text-muted)]">
+              Halves sampling variance, converging strictly at \(\mathcal{O}(1/\sqrt{N})\).
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    // State management
+    const state = {
+      S0: 100,
+      K: 100,
+      r: 0.05,
+      sigma: 0.20,
+      T: 1.0,
+      N: 50000,
+      antithetic: true,
+      currentTab: 'gbm',
+      isDark: true,
+      results: null
+    };
+
+    // DOM Elements
+    const inputS0 = document.getElementById('inputS0');
+    const inputK = document.getElementById('inputK');
+    const inputR = document.getElementById('inputR');
+    const inputSigma = document.getElementById('inputSigma');
+    const inputT = document.getElementById('inputT');
+    const toggleAntithetic = document.getElementById('toggleAntithetic');
+    const nButtons = document.querySelectorAll('.n-btn');
+
+    const labelS0 = document.getElementById('labelS0');
+    const labelK = document.getElementById('labelK');
+    const labelR = document.getElementById('labelR');
+    const labelSigma = document.getElementById('labelSigma');
+    const labelT = document.getElementById('labelT');
+    const labelN = document.getElementById('labelN');
+
+    const cardCallPrice = document.getElementById('cardCallPrice');
+    const cardBsCall = document.getElementById('cardBsCall');
+    const cardCallCi = document.getElementById('cardCallCi');
+    const cardCallSe = document.getElementById('cardCallSe');
+
+    const cardPutPrice = document.getElementById('cardPutPrice');
+    const cardBsPut = document.getElementById('cardBsPut');
+    const cardPutCi = document.getElementById('cardPutCi');
+    const cardPutSe = document.getElementById('cardPutSe');
+
+    const metricParityGap = document.getElementById('metricParityGap');
+    const metricBsParity = document.getElementById('metricBsParity');
+    const metricCallInCi = document.getElementById('metricCallInCi');
+    const metricPutInCi = document.getElementById('metricPutInCi');
+    const metricTime = document.getElementById('metricTime');
+
+    const tabGbm = document.getElementById('tabGbm');
+    const tabDist = document.getElementById('tabDist');
+    const tabPayoff = document.getElementById('tabPayoff');
+    const chartStatusText = document.getElementById('chartStatusText');
+    const chartLegend = document.getElementById('chartLegend');
+    const mainCanvas = document.getElementById('mainCanvas');
+    const ctx = mainCanvas.getContext('2d');
+
+    // Standard Normal CDF approximation (Abramowitz & Stegun formula 7.1.26, precision 1.5e-7)
+    function stdNormCdf(x) {
+      if (x < 0) return 1 - stdNormCdf(-x);
+      const b1 = 0.319381530;
+      const b2 = -0.356563782;
+      const b3 = 1.781477937;
+      const b4 = -1.821255978;
+      const b5 = 1.330274429;
+      const p = 0.2316419;
+      const c = 0.3989422804014327; // 1/sqrt(2*pi)
+      const t = 1.0 / (1.0 + p * x);
+      const poly = ((((b5 * t + b4) * t + b3) * t + b2) * t + b1) * t;
+      return 1.0 - c * Math.exp(-0.5 * x * x) * poly;
+    }
+
+    // Exact Analytical Black-Scholes Formula
+    function blackScholes(S0, K, r, sigma, T) {
+      const d1 = (Math.log(S0 / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+      const d2 = d1 - sigma * Math.sqrt(T);
+      const disc = Math.exp(-r * T);
+
+      const call = S0 * stdNormCdf(d1) - K * disc * stdNormCdf(d2);
+      const put = K * disc * stdNormCdf(-d2) - S0 * stdNormCdf(-d1);
+
+      return { call, put, d1, d2 };
+    }
+
+    // Box-Muller Gaussian Shock Generator
+    function boxMuller() {
+      let u1 = 0, u2 = 0;
+      while (u1 === 0) u1 = Math.random();
+      while (u2 === 0) u2 = Math.random();
+      return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    }
+
+    // Monte Carlo Simulation Engine
+    function runSimulation() {
+      const startTime = performance.now();
+      const { S0, K, r, sigma, T, N, antithetic } = state;
+
+      const drift = (r - 0.5 * sigma * sigma) * T;
+      const volSqrtT = sigma * Math.sqrt(T);
+      const disc = Math.exp(-r * T);
+
+      let sumCall = 0;
+      let sumCallSq = 0;
+      let sumPut = 0;
+      let sumPutSq = 0;
+      let sumSt = 0;
+
+      const sampleTerminalPrices = [];
+      const numToStore = Math.min(N, 2000);
+
+      if (antithetic) {
+        const pairs = Math.floor(N / 2);
+        for (let i = 0; i < pairs; i++) {
+          const z = boxMuller();
+          
+          const sT_plus = S0 * Math.exp(drift + volSqrtT * z);
+          const sT_minus = S0 * Math.exp(drift - volSqrtT * z);
+
+          const callPlus = Math.max(sT_plus - K, 0);
+          const callMinus = Math.max(sT_minus - K, 0);
+          const callPairAvg = 0.5 * (callPlus + callMinus);
+
+          const putPlus = Math.max(K - sT_plus, 0);
+          const putMinus = Math.max(K - sT_minus, 0);
+          const putPairAvg = 0.5 * (putPlus + putMinus);
+
+          sumCall += callPairAvg;
+          sumCallSq += callPairAvg * callPairAvg;
+
+          sumPut += putPairAvg;
+          sumPutSq += putPairAvg * putPairAvg;
+
+          sumSt += sT_plus + sT_minus;
+
+          if (sampleTerminalPrices.length < numToStore) {
+            sampleTerminalPrices.push(sT_plus);
+            sampleTerminalPrices.push(sT_minus);
+          }
+        }
+
+        const callMeanDisc = disc * (sumCall / pairs);
+        const callVar = (sumCallSq / pairs - (sumCall / pairs) ** 2) / pairs;
+        const callSe = disc * Math.sqrt(Math.max(0, callVar));
+
+        const putMeanDisc = disc * (sumPut / pairs);
+        const putVar = (sumPutSq / pairs - (sumPut / pairs) ** 2) / pairs;
+        const putSe = disc * Math.sqrt(Math.max(0, putVar));
+
+        const elapsed = performance.now() - startTime;
+        const bs = blackScholes(S0, K, r, sigma, T);
+
+        state.results = {
+          callMc: callMeanDisc,
+          callSe: callSe,
+          callCi: [callMeanDisc - 1.96 * callSe, callMeanDisc + 1.96 * callSe],
+          putMc: putMeanDisc,
+          putSe: putSe,
+          putCi: [putMeanDisc - 1.96 * putSe, putMeanDisc + 1.96 * putSe],
+          bsCall: bs.call,
+          bsPut: bs.put,
+          meanSt: sumSt / (pairs * 2),
+          samplePrices: sampleTerminalPrices,
+          elapsed: elapsed
+        };
+      } else {
+        for (let i = 0; i < N; i++) {
+          const z = boxMuller();
+          const sT = S0 * Math.exp(drift + volSqrtT * z);
+          const c = Math.max(sT - K, 0);
+          const p = Math.max(K - sT, 0);
+
+          sumCall += c;
+          sumCallSq += c * c;
+          sumPut += p;
+          sumPutSq += p * p;
+          sumSt += sT;
+
+          if (sampleTerminalPrices.length < numToStore) {
+            sampleTerminalPrices.push(sT);
+          }
+        }
+
+        const callMeanDisc = disc * (sumCall / N);
+        const callVar = (sumCallSq / N - (sumCall / N) ** 2) / N;
+        const callSe = disc * Math.sqrt(Math.max(0, callVar));
+
+        const putMeanDisc = disc * (sumPut / N);
+        const putVar = (sumPutSq / N - (sumPut / N) ** 2) / N;
+        const putSe = disc * Math.sqrt(Math.max(0, putVar));
+
+        const elapsed = performance.now() - startTime;
+        const bs = blackScholes(S0, K, r, sigma, T);
+
+        state.results = {
+          callMc: callMeanDisc,
+          callSe: callSe,
+          callCi: [callMeanDisc - 1.96 * callSe, callMeanDisc + 1.96 * callSe],
+          putMc: putMeanDisc,
+          putSe: putSe,
+          putCi: [putMeanDisc - 1.96 * putSe, putMeanDisc + 1.96 * putSe],
+          bsCall: bs.call,
+          bsPut: bs.put,
+          meanSt: sumSt / N,
+          samplePrices: sampleTerminalPrices,
+          elapsed: elapsed
+        };
+      }
+
+      updateUI();
+      renderCurrentChart();
+    }
+
+    // Update UI elements with computation results
+    function updateUI() {
+      const res = state.results;
+      if (!res) return;
+
+      labelS0.textContent = `$${state.S0.toFixed(2)}`;
+      labelK.textContent = `$${state.K.toFixed(2)}`;
+      labelR.textContent = `${(state.r * 100).toFixed(1)}%`;
+      labelSigma.textContent = `${(state.sigma * 100).toFixed(1)}%`;
+      labelT.textContent = `${state.T.toFixed(2)} yr`;
+      labelN.textContent = `${state.N.toLocaleString()} paths`;
+
+      // Call metrics
+      cardCallPrice.textContent = res.callMc.toFixed(3);
+      cardBsCall.textContent = res.bsCall.toFixed(4);
+      cardCallCi.textContent = `[${res.callCi[0].toFixed(3)}, ${res.callCi[1].toFixed(3)}]`;
+      cardCallSe.textContent = res.callSe.toFixed(4);
+
+      // Put metrics
+      cardPutPrice.textContent = res.putMc.toFixed(3);
+      cardBsPut.textContent = res.bsPut.toFixed(4);
+      cardPutCi.textContent = `[${res.putCi[0].toFixed(3)}, ${res.putCi[1].toFixed(3)}]`;
+      cardPutSe.textContent = res.putSe.toFixed(4);
+
+      // Parity check
+      const theoreticalParity = state.S0 - state.K * Math.exp(-state.r * state.T);
+      const simulatedParity = res.callMc - res.putMc;
+      const parityGap = Math.abs(simulatedParity - theoreticalParity);
+
+      metricParityGap.textContent = (simulatedParity - theoreticalParity).toFixed(4);
+      metricBsParity.textContent = theoreticalParity.toFixed(4);
+
+      const callInside = res.bsCall >= res.callCi[0] && res.bsCall <= res.callCi[1];
+      const putInside = res.bsPut >= res.putCi[0] && res.bsPut <= res.putCi[1];
+
+      metricCallInCi.textContent = callInside ? "YES (Verified)" : "Outside 95% CI";
+      metricCallInCi.className = callInside ? "font-bold text-emerald-400" : "font-bold text-amber-400";
+
+      metricPutInCi.textContent = putInside ? "YES (Verified)" : "Outside 95% CI";
+      metricPutInCi.className = putInside ? "font-bold text-emerald-400" : "font-bold text-amber-400";
+
+      metricTime.textContent = `${res.elapsed.toFixed(1)} ms`;
+    }
+
+    // Canvas Resize Helper
+    function resizeCanvas() {
+      const rect = mainCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      mainCanvas.width = rect.width * dpr;
+      mainCanvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    // Chart Renderer: 1. GBM Paths
+    function renderGbmChart() {
+      resizeCanvas();
+      const w = mainCanvas.getBoundingClientRect().width;
+      const h = mainCanvas.getBoundingClientRect().height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const padding = { left: 55, right: 30, top: 25, bottom: 40 };
+      const plotW = w - padding.left - padding.right;
+      const plotH = h - padding.top - padding.bottom;
+
+      // Simulate 20 discrete paths with 50 time steps
+      const steps = 50;
+      const dt = state.T / steps;
+      const numPaths = 25;
+      const paths = [];
+      let minS = state.S0 * 0.7;
+      let maxS = state.S0 * 1.3;
+
+      for (let p = 0; p < numPaths; p++) {
+        const path = [state.S0];
+        let curr = state.S0;
+        for (let s = 1; s <= steps; s++) {
+          const z = boxMuller();
+          curr *= Math.exp((state.r - 0.5 * state.sigma * state.sigma) * dt + state.sigma * Math.sqrt(dt) * z);
+          path.push(curr);
+          if (curr < minS) minS = curr;
+          if (curr > maxS) maxS = curr;
+        }
+        paths.push(path);
+      }
+
+      minS = Math.max(0, minS * 0.95);
+      maxS = maxS * 1.05;
+
+      const scaleX = t => padding.left + (t / steps) * plotW;
+      const scaleY = s => padding.top + plotH - ((s - minS) / (maxS - minS)) * plotH;
+
+      // Draw Grid
+      ctx.strokeStyle = state.isDark ? '#334155' : '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 5; i++) {
+        const yVal = minS + (i / 5) * (maxS - minS);
+        const y = scaleY(yVal);
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + plotW, y);
+        
+        ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`$${yVal.toFixed(0)}`, padding.left - 8, y + 3);
+      }
+      ctx.stroke();
+
+      // Draw Strike Price K line (dashed red)
+      const strikeY = scaleY(state.K);
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padding.left, strikeY);
+      ctx.lineTo(padding.left + plotW, strikeY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillText(`K = $${state.K.toFixed(0)}`, padding.left + plotW - 5, strikeY - 5);
+
+      // Draw Paths
+      paths.forEach((path, idx) => {
+        const isUp = path[steps] >= state.K;
+        ctx.strokeStyle = isUp ? 'rgba(59, 130, 246, 0.45)' : 'rgba(168, 85, 247, 0.45)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for (let s = 0; s <= steps; s++) {
+          const x = scaleX(s);
+          const y = scaleY(path[s]);
+          if (s === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      });
+
+      // Draw Time Labels
+      ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 5; i++) {
+        const timeFraction = (i / 5) * state.T;
+        const x = scaleX((i / 5) * steps);
+        ctx.fillText(`${timeFraction.toFixed(2)}y`, x, padding.top + plotH + 18);
+      }
+      ctx.fillText("Time to Expiry (Years)", padding.left + plotW / 2, padding.top + plotH + 32);
+
+      chartStatusText.textContent = `25 Simulated Trajectories over T = ${state.T.toFixed(1)} yr`;
+      chartLegend.innerHTML = `
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> In-The-Money Path (ST ≥ K)</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Out-of-The-Money Path</span>
+        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 border-t border-dashed border-red-500"></span> Strike Price K</span>
+      `;
+    }
+
+    // Chart Renderer: 2. Terminal Price Distribution
+    function renderDistChart() {
+      resizeCanvas();
+      const w = mainCanvas.getBoundingClientRect().width;
+      const h = mainCanvas.getBoundingClientRect().height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (!state.results || !state.results.samplePrices) return;
+
+      const padding = { left: 55, right: 30, top: 25, bottom: 40 };
+      const plotW = w - padding.left - padding.right;
+      const plotH = h - padding.top - padding.bottom;
+
+      const prices = state.results.samplePrices;
+      let minP = Math.min(...prices);
+      let maxP = Math.max(...prices);
+
+      // Create 35 histogram bins
+      const binCount = 35;
+      const binWidth = (maxP - minP) / binCount;
+      const bins = new Array(binCount).fill(0);
+
+      prices.forEach(p => {
+        let b = Math.floor((p - minP) / binWidth);
+        if (b >= binCount) b = binCount - 1;
+        if (b >= 0) bins[b]++;
+      });
+
+      const maxBin = Math.max(...bins);
+
+      const scaleX = p => padding.left + ((p - minP) / (maxP - minP)) * plotW;
+      const scaleY = count => padding.top + plotH - (count / maxBin) * plotH;
+
+      // Draw Grid
+      ctx.strokeStyle = state.isDark ? '#334155' : '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 4; i++) {
+        const y = padding.top + (i / 4) * plotH;
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + plotW, y);
+      }
+      ctx.stroke();
+
+      // Draw Bars
+      for (let b = 0; b < binCount; b++) {
+        const pLeft = minP + b * binWidth;
+        const pMid = pLeft + binWidth / 2;
+        const x = scaleX(pLeft);
+        const barW = (plotW / binCount) - 1;
+        const barH = (bins[b] / maxBin) * plotH;
+        const y = padding.top + plotH - barH;
+
+        ctx.fillStyle = pMid >= state.K ? 'rgba(59, 130, 246, 0.7)' : 'rgba(168, 85, 247, 0.7)';
+        ctx.fillRect(x, y, Math.max(1, barW), barH);
+      }
+
+      // Draw Strike Price K Line
+      const strikeX = scaleX(state.K);
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(strikeX, padding.top);
+      ctx.lineTo(strikeX, padding.top + plotH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#ef4444';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Strike K = $${state.K.toFixed(0)}`, strikeX, padding.top - 8);
+
+      // X Axis Labels
+      ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
+      for (let i = 0; i <= 5; i++) {
+        const pVal = minP + (i / 5) * (maxP - minP);
+        const x = scaleX(pVal);
+        ctx.fillText(`$${pVal.toFixed(0)}`, x, padding.top + plotH + 18);
+      }
+      ctx.fillText("Terminal Spot Price S(T) at Expiry", padding.left + plotW / 2, padding.top + plotH + 32);
+
+      chartStatusText.textContent = `Lognormal Terminal Price Distribution (${prices.length.toLocaleString()} sampled paths)`;
+      chartLegend.innerHTML = `
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-blue-500"></span> Call ITM (ST ≥ K)</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-purple-500"></span> Put ITM (ST < K)</span>
+        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 border-t border-dashed border-red-500"></span> Strike Price K</span>
+      `;
+    }
+
+    // Chart Renderer: 3. Payoff Diagram
+    function renderPayoffChart() {
+      resizeCanvas();
+      const w = mainCanvas.getBoundingClientRect().width;
+      const h = mainCanvas.getBoundingClientRect().height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const padding = { left: 55, right: 30, top: 25, bottom: 40 };
+      const plotW = w - padding.left - padding.right;
+      const plotH = h - padding.top - padding.bottom;
+
+      const minS = Math.max(0, state.K - 50);
+      const maxS = state.K + 50;
+      const maxPayoff = Math.max(state.K - minS, maxS - state.K);
+
+      const scaleX = s => padding.left + ((s - minS) / (maxS - minS)) * plotW;
+      const scaleY = payoff => padding.top + plotH - (payoff / maxPayoff) * plotH;
+
+      // Draw Grid
+      ctx.strokeStyle = state.isDark ? '#334155' : '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 4; i++) {
+        const yVal = (i / 4) * maxPayoff;
+        const y = scaleY(yVal);
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + plotW, y);
+        
+        ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`$${yVal.toFixed(0)}`, padding.left - 8, y + 3);
+      }
+      ctx.stroke();
+
+      // Zero Payoff Baseline
+      ctx.strokeStyle = state.isDark ? '#64748b' : '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, scaleY(0));
+      ctx.lineTo(padding.left + plotW, scaleY(0));
+      ctx.stroke();
+
+      // Call Payoff Line: max(S_T - K, 0)
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(scaleX(minS), scaleY(0));
+      ctx.lineTo(scaleX(state.K), scaleY(0));
+      ctx.lineTo(scaleX(maxS), scaleY(maxS - state.K));
+      ctx.stroke();
+
+      // Put Payoff Line: max(K - S_T, 0)
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(scaleX(minS), scaleY(state.K - minS));
+      ctx.lineTo(scaleX(state.K), scaleY(0));
+      ctx.lineTo(scaleX(maxS), scaleY(0));
+      ctx.stroke();
+
+      // X Axis Labels
+      ctx.fillStyle = state.isDark ? '#94a3b8' : '#64748b';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 4; i++) {
+        const sVal = minS + (i / 4) * (maxS - minS);
+        const x = scaleX(sVal);
+        ctx.fillText(`$${sVal.toFixed(0)}`, x, padding.top + plotH + 18);
+      }
+      ctx.fillText("Terminal Stock Price S(T)", padding.left + plotW / 2, padding.top + plotH + 32);
+
+      chartStatusText.textContent = `Intrinsic European Payoff Profiles at Strike K = $${state.K.toFixed(0)}`;
+      chartLegend.innerHTML = `
+        <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-500 rounded"></span> Call Payoff: max(ST - K, 0)</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-purple-500 rounded"></span> Put Payoff: max(K - ST, 0)</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Strike Pivot K = $${state.K.toFixed(0)}</span>
+      `;
+    }
+
+    function renderCurrentChart() {
+      if (state.currentTab === 'gbm') renderGbmChart();
+      else if (state.currentTab === 'dist') renderDistChart();
+      else if (state.currentTab === 'payoff') renderPayoffChart();
+    }
+
+    // Tab Event Listeners
+    tabGbm.addEventListener('click', () => {
+      state.currentTab = 'gbm';
+      updateTabStyles();
+      renderCurrentChart();
+    });
+
+    tabDist.addEventListener('click', () => {
+      state.currentTab = 'dist';
+      updateTabStyles();
+      renderCurrentChart();
+    });
+
+    tabPayoff.addEventListener('click', () => {
+      state.currentTab = 'payoff';
+      updateTabStyles();
+      renderCurrentChart();
+    });
+
+    function updateTabStyles() {
+      [tabGbm, tabDist, tabPayoff].forEach(btn => {
+        btn.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-transparent text-[var(--text-muted)] hover:text-white";
+      });
+      if (state.currentTab === 'gbm') tabGbm.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white";
+      if (state.currentTab === 'dist') tabDist.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white";
+      if (state.currentTab === 'payoff') tabPayoff.className = "chart-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white";
+    }
+
+    // Input Listeners
+    inputS0.addEventListener('input', e => { state.S0 = parseFloat(e.target.value); runSimulation(); });
+    inputK.addEventListener('input', e => { state.K = parseFloat(e.target.value); runSimulation(); });
+    inputR.addEventListener('input', e => { state.r = parseFloat(e.target.value) / 100.0; runSimulation(); });
+    inputSigma.addEventListener('input', e => { state.sigma = parseFloat(e.target.value) / 100.0; runSimulation(); });
+    inputT.addEventListener('input', e => { state.T = parseFloat(e.target.value); runSimulation(); });
+    toggleAntithetic.addEventListener('change', e => { state.antithetic = e.target.checked; runSimulation(); });
+
+    nButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        nButtons.forEach(b => {
+          b.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500 text-[var(--text-muted)]";
+        });
+        btn.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-blue-500 bg-blue-500/20 text-blue-400";
+        state.N = parseInt(btn.getAttribute('data-n'));
+        runSimulation();
+      });
+    });
+
+    document.getElementById('runSimBtn').addEventListener('click', runSimulation);
+
+    document.getElementById('resetDefaultsBtn').addEventListener('click', () => {
+      state.S0 = 100;
+      state.K = 100;
+      state.r = 0.05;
+      state.sigma = 0.20;
+      state.T = 1.0;
+      state.N = 50000;
+      state.antithetic = true;
+
+      inputS0.value = 100;
+      inputK.value = 100;
+      inputR.value = 5;
+      inputSigma.value = 20;
+      inputT.value = 1.0;
+      toggleAntithetic.checked = true;
+
+      nButtons.forEach(b => {
+        b.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:border-blue-500 text-[var(--text-muted)]";
+        if (b.getAttribute('data-n') === '50000') {
+          b.className = "n-btn px-2 py-1.5 text-xs font-semibold rounded-lg border border-blue-500 bg-blue-500/20 text-blue-400";
+        }
+      });
+
+      runSimulation();
+    });
+
+    // Theme Toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      state.isDark = !state.isDark;
+      if (state.isDark) {
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.add('light');
+      }
+      renderCurrentChart();
+    });
+
+    // Export Results JSON
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        project: "Monte Carlo European Option Pricing",
+        institution: "MITS Gwalior",
+        students: [
+          { name: "Rudransh Shukla", roll: "BTMC25O1119" },
+          { name: "Vaibhav Sharma", roll: "BTMC25O1144" }
+        ],
+        parameters: {
+          S0: state.S0,
+          K: state.K,
+          r: state.r,
+          sigma: state.sigma,
+          T: state.T,
+          N: state.N,
+          antithetic: state.antithetic
+        },
+        results: {
+          call_mc: state.results.callMc,
+          call_bs: state.results.bsCall,
+          call_se: state.results.callSe,
+          call_95ci: state.results.callCi,
+          put_mc: state.results.putMc,
+          put_bs: state.results.bsPut,
+          put_se: state.results.putSe,
+          put_95ci: state.results.putCi,
+          elapsed_ms: state.results.elapsed
+        }
+      }, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `mc_option_pricing_${Date.now()}.json`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    });
+
+    // Copy Summary to Clipboard
+    document.getElementById('copySummaryBtn').addEventListener('click', () => {
+      const summary = `Monte Carlo Option Pricing Results:
+S0=${state.S0}, K=${state.K}, r=${(state.r*100).toFixed(1)}%, sigma=${(state.sigma*100).toFixed(1)}%, T=${state.T}y, N=${state.N}
+Call MC: ${state.results.callMc.toFixed(4)} (BS: ${state.results.bsCall.toFixed(4)}, SE: ${state.results.callSe.toFixed(4)})
+Put MC:  ${state.results.putMc.toFixed(4)} (BS: ${state.results.bsPut.toFixed(4)}, SE: ${state.results.putSe.toFixed(4)})
+Parity check: S0 - K*exp(-rT) = ${(state.S0 - state.K * Math.exp(-state.r * state.T)).toFixed(4)}`;
+      navigator.clipboard.writeText(summary).then(() => {
+        alert("Summary copied to clipboard!");
+      });
+    });
+
+    // Handle Window Resize
+    window.addEventListener('resize', renderCurrentChart);
+
+    // Initial Execution
+    runSimulation();
+  </script>
+</body>
+</html>

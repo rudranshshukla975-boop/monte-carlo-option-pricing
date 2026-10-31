@@ -7,6 +7,12 @@ This self-contained script shows the minimal steps to price a European option:
 3. Run Monte Carlo simulation with standard error and 95% confidence interval.
 """
 
+import sys
+from pathlib import Path
+
+# Allow running directly from examples/ directory without prior pip install
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from mc_option_pricing import mc_price, black_scholes, mc_price_antithetic
 
 # 1. Market & Contract Parameters

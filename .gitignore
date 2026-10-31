@@ -6,17 +6,19 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+*.egg-info/
+dist/
+build/
 
-# IDE configurations
+# IDE & OS configurations
 .vscode/
 .idea/
-
-# College reports, Word documents, and PDFs
-*.docx
-*.pdf
-docs/
-report/
-
-# OS specific files
 Thumbs.db
 .DS_Store
+
+# Internal college report drafts, submission scripts & portal guides
+*.docx
+*.pdf
+report/
+*SDMS*
+Project1_Report*
